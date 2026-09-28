@@ -1,0 +1,13 @@
+import { PageFrame } from "@/components/site-shell";
+
+export default function CreatePage() {
+  return (
+    <PageFrame
+      title="สร้างประกาศ"
+      subtitle="สร้างประกาศเกี่ยวกับสัตว์เลี้ยง"
+      eyebrow="POST SOMETHING"
+    >
+      <p>Create listing coming soon.</p>
+    </PageFrame>
+  );
+}

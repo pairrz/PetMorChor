@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
 import type { Metadata, Viewport } from "next";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pet MorChor",
-  description: "คอมมูนิตี้คนรักสัตว์เลี้ยงละแวก มช.",
   title: "PetMorChor — ชุมชนคนรักสัตว์",
   description:
     "ค้นหาสัตว์เลี้ยงและคนรักสัตว์ใกล้คุณกับ PetMorChor ชุมชนสำหรับคนรักสัตว์",
@@ -40,23 +37,14 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
-export default function RootLayout({
-  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
     <html lang="th">
-      <body>
-        <ReactQueryProvider>
-          {children}
-        </ReactQueryProvider>
+      <body className="antialiased">
+        <ReactQueryProvider>{children}</ReactQueryProvider>
       </body>
-    <html lang="th">
-      <body className="antialiased">{children}</body>
     </html>
   );
 }
