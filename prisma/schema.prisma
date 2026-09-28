@@ -11,3 +11,230 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  password      String?
+  oauthProvider String?
+  role          Role      @default(USER)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  posts         Post[]
+  likes         Like[]
+  comments      Comment[]
+
+  // Marketplace/Adoption Listings (เป็นคนลงประกาศ)
+  listings      Listing[]         @relation("UserListings")
+
+  // Chat Relations
+  participants  ChatParticipant[]
+  messages      Message[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ------------------------------------------------------
+// 2. Pet Listings (สำหรับอวด/หาบ้าน/ซื้อขาย)
+// ------------------------------------------------------
+
+enum ListingStatus {
+  AVAILABLE // เปิดหาบ้าน / ยังอยู่
+  ADOPTED   // มีคนรับเลี้ยงแล้ว / ขายแล้ว
+  HIDDEN    // ซ่อนประกาศ
+}
+
+model Listing {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  title       String
+  description String
+  species     String
+  price       Decimal       @default(0) @db.Decimal(12, 2) // 0 คือแจกฟรี/หาบ้าน
+  status      ListingStatus @default(AVAILABLE)
+  type        String        // "SALE" หรือ "ADOPTION"
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user        User          @relation("UserListings", fields: [userId], references: [id], onDelete: Cascade)
+  media       ListingMedia[]
+  chatRooms   ChatRoom[]
+
+  @@index([userId])
+  @@index([status, type])
+}
+
+model ListingMedia {
+  id        Int      @id @default(autoincrement())
+  listingId Int
+  mediaUrl  String
+  createdAt DateTime @default(now())
+
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+}
+
+// ------------------------------------------------------
+// 3. Direct Messaging (คุยตกลงกันผ่านแชท)
+// ------------------------------------------------------
+
+model ChatRoom {
+  id           Int               @id @default(autoincrement())
+  listingId    Int
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  listing      Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  participants ChatParticipant[]
+  messages     Message[]
+
+  @@index([listingId])
+}
+
+model ChatParticipant {
+  id       Int      @id @default(autoincrement())
+  roomId   Int
+  userId   Int
+  joinedAt DateTime @default(now())
+
+  room     ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  roomId    Int
+  senderId  Int
+  content   String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([senderId])
+}
+
+// ------------------------------------------------------
+// 4. Community & Knowledge (คงเดิม)
+// ------------------------------------------------------
+model Post {
+  id          Int         @id @default(autoincrement())
+  userId      Int
+  caption     String
+  description String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media       PostMedia[]
+  likes       Like[]
+  comments    Comment[]
+
+  @@index([userId])
+}
+
+model PostMedia {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  mediaUrl  String
+  mediaType String   // "IMAGE" หรือ "VIDEO"
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  @@index([postId])
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  articles Article[]
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+  title       String
+  content     String
+  speciesTag  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    Category @relation(fields: [categoryId], references: [id])
+  @@index([categoryId])
+}
+
+model PlaceType {
+  id     Int     @id @default(autoincrement())
+  name   String  @unique
+  places Place[]
+}
+
+model Place {
+  id              Int       @id @default(autoincrement())
+  placeTypeId     Int
+  externalPlaceId String    @unique
+  name            String
+  address         String
+  latitude        Decimal   @db.Decimal(9, 6)
+  longitude       Decimal   @db.Decimal(9, 6)
+  openingHours    String
+
+  placeType       PlaceType @relation(fields: [placeTypeId], references: [id])
+  @@index([placeTypeId])
+}
