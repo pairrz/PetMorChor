@@ -1,0 +1,8 @@
+export const pets = [
+{id:'mochi',name:'Mochi',breed:'British Shorthair',age:'1 year · Female',place:'University Dorm Zone',distance:'0.8 km',status:'ADOPTION',image:'https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=900&q=85'},
+{id:'milo',name:'Milo',breed:'Mixed Breed',age:'2 years · Male',place:'Near West Campus Gate',distance:'1.2 km',status:'ADOPTION',image:'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=900&q=85'},
+{id:'taro',name:'Taro',breed:'Shiba Inu',age:'8 months · Male',place:'Faculty Dorms',distance:'2.4 km',status:'FOR SALE',image:'https://images.unsplash.com/photo-1553481187-be93c21490a9?auto=format&fit=crop&w=900&q=85'},
+{id:'luna',name:'Luna',breed:'Holland Lop',age:'6 months · Female',place:'Near University Market',distance:'0.5 km',status:'ADOPTION',image:'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?auto=format&fit=crop&w=900&q=85'}]
+export const articles=[{id:'dorm-cat',title:'How to care for a cat in a dorm',tag:'CARE',time:'6 min read',image:'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=900&q=85'},{id:'adopt-dog',title:'Things to prepare before adopting a dog',tag:'ADOPTION',time:'8 min read',image:'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=900&q=85'},{id:'stray',title:'What to do when you find a stray around campus',tag:'SAFETY',time:'5 min read',image:'https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=900&q=85'}]
+export const nav=[['หน้าแรก','/'],['ค้นหาใกล้ฉัน','/discover'],['ตลาดสัตว์เลี้ยง','/marketplace'],['ชุมชน','/community'],['ข้อมูลน่ารู้','/information']]
+export type Pet=typeof pets[number]
