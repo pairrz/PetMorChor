@@ -1,17 +1,15 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
-import {
-  Hero,
-  SectionTitle,
-  PetGrid,
-  PostCards,
-  ServiceCards,
-  ArticleCards,
-  SiteShell,
-} from "@/components/site-shell";
 
-// กำหนด Revalidate ทุก 60 วินาที (ISR ตามบทเรียน Meta-frameworks)
-export const revalidate = 60;
+import { SiteShell } from "@/components/layout/SiteShell";
+import { Hero } from "@/components/home/Hero";
+import { SectionTitle } from "@/components/layout/SectionTitle";
+import { PetGrid } from "@/components/marketplace/PetGrid";
+import { PostCards } from "@/components/community/PostCards";
+import { ServiceCards } from "@/components/discover/ServiceCards";
+import { ArticleCards } from "@/components/information/ArticleCards";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   // ดึงข้อมูลจริงจาก Database บน Server โดยตรง (Zero Client JS)

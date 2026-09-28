@@ -1,25 +1,31 @@
-import {
-  PageFrame,
-  PetGrid,
-  SectionTitle,
-  SearchFilters,
-  MarketplaceCards,
-} from "@/components/site-shell";
+import { PageFrame } from "@/components/layout/PageFrame";
+import { PetGrid } from "@/components/marketplace/PetGrid";
+import { MarketplaceCards } from "@/components/marketplace/MarketplaceCards";
+import { prisma } from "@/lib/prisma";
 
-export default function MarketplacePage() {
+export const dynamic = "force-dynamic";
+export default async function MarketplacePage() {
+  const listings = await prisma.listing.findMany({
+    where: {
+      status: "AVAILABLE",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      media: true,
+    },
+  });
+
   return (
     <PageFrame
       title="ตลาดสัตว์เลี้ยง"
       subtitle="ประกาศหาบ้านและของใช้สัตว์เลี้ยงจากคนในพื้นที่ใกล้เคียง"
       eyebrow="ซื้อและหาบ้าน"
     >
-      <SearchFilters />
-
       <MarketplaceCards />
 
-      <SectionTitle title="Pets looking for homes" />
-
-      <PetGrid />
+      <PetGrid items={listings} />
     </PageFrame>
   );
 }

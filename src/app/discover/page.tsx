@@ -1,4 +1,4 @@
-import { PageFrame } from "@/components/site-shell";
+import { PageFrame } from "@/components/layout/PageFrame";
 import PetMap from "@/components/map/petmapclient";
 
 export default function DiscoverPage() {

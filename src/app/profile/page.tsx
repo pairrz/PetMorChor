@@ -1,4 +1,4 @@
-import { PageFrame } from "@/components/site-shell";
+import { PageFrame } from "@/components/layout/PageFrame";
 
 export default function ProfilePage() {
   return (
