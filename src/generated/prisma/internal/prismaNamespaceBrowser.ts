@@ -172,6 +172,8 @@ export const PostScalarFieldEnum = {
   userId: 'userId',
   caption: 'caption',
   description: 'description',
+  isPinned: 'isPinned',
+  category: 'category',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

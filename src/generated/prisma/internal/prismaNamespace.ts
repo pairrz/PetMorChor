@@ -1668,6 +1668,8 @@ export const PostScalarFieldEnum = {
   userId: 'userId',
   caption: 'caption',
   description: 'description',
+  isPinned: 'isPinned',
+  category: 'category',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -1862,6 +1864,13 @@ export type EnumListingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pr
  * Reference to a field of type 'ListingStatus[]'
  */
 export type ListEnumListingStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ListingStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'Boolean'
+ */
+export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 

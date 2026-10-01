@@ -150,6 +150,8 @@ model Post {
   userId      Int
   caption     String
   description String
+  isPinned  Boolean   @default(false)
+  category  String    @default("GENERAL") // GENERAL, LOST_PET, ADOPTION
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -159,6 +161,8 @@ model Post {
   comments    Comment[]
 
   @@index([userId])
+  @@index([category, createdAt(sort: Desc)])
+  @@index([isPinned, createdAt(sort: Desc), id(sort: Desc)])
 }
 
 model PostMedia {

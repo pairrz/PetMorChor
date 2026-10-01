@@ -3,13 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { getPostsQuerySchema, createPostSchema } from "@/lib/validations/post";
 import { getSessionUser } from "@/lib/auth-guard";
 
-// GET /api/posts - ดึงรายการโพสต์ฟีดอวดสัตว์เลี้ยง
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const queryParams = Object.fromEntries(url.searchParams.entries());
 
-    // 1. ตรวจสอบ Query Parameters ด้วย Zod[cite: 1]
+    // 1. ตรวจสอบ Query Parameters ด้วย Zod
     const parsedQuery = getPostsQuerySchema.safeParse(queryParams);
     if (!parsedQuery.success) {
       return NextResponse.json(
@@ -18,37 +17,106 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { limit, cursor } = parsedQuery.data;
+    const { limit = 10, cursor, category } = parsedQuery.data;
 
-    // 2. Query ดึงโพสต์ พร้อมสื่อ (Media), ข้อมูลผู้โพสต์ และสถิติ Like/Comment
+    // ตรวจสอบ Session เพื่อเช็ค isLiked (Visitor จะได้ null)
+    const session = await getSession(req);
+    const currentUserId = session?.userId;
+
+    // 2. ถอดรหัส Composite Cursor (Base64 -> JSON)
+    let decodedCursor: DecodedCursor | null = null;
+    if (cursor) {
+      try {
+        decodedCursor = JSON.parse(
+          Buffer.from(cursor, "base64").toString("utf-8")
+        );
+      } catch {
+        return NextResponse.json(
+          { success: false, message: "Invalid cursor token" },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 3. กำหนด Where Clause สำหรับ Priority + Cursor Pagination
+    const whereCondition: any = {
+      ...(category ? { category } : {}),
+    };
+
+    if (decodedCursor) {
+      const cursorDate = new Date(decodedCursor.createdAt);
+      whereCondition.OR = [
+        // ลำดับ 1: โพสต์ธรรมดาหลังหมดกลุ่ม Pinned
+        {
+          isPinned: { lt: decodedCursor.isPinned },
+        },
+        // ลำดับ 2: กลุ่มความสำคัญเดียวกัน แต่เวลาเก่าวัดจาก Cursor
+        {
+          isPinned: decodedCursor.isPinned,
+          createdAt: { lt: cursorDate },
+        },
+        // ลำดับ 3: กลุ่มความสำคัญและเวลาเท่ากัน ใช้ ID เป็น Tie-breaker
+        {
+          isPinned: decodedCursor.isPinned,
+          createdAt: cursorDate,
+          id: { lt: decodedCursor.id },
+        },
+      ];
+    }
+
+    // 4. Query ดึงโพสต์
     const posts = await prisma.post.findMany({
-      take: limit + 1, // ดึงเกินมา 1 เพื่อใช้คำนวณ nextCursor
-      cursor: cursor ? { id: cursor } : undefined,
-      skip: cursor ? 1 : 0, // ข้ามตัว cursor ตัวปัจจุบัน
-      orderBy: { createdAt: "desc" },
+      take: limit + 1,
+      where: whereCondition,
+      orderBy: [
+        { isPinned: "desc" },
+        { createdAt: "desc" },
+        { id: "desc" },
+      ],
       include: {
         user: {
-          select: { id: true, name: true }, // ป้องกันการส่ง email/password ออกไป
+          select: { id: true, name: true, image: true },
         },
         media: {
           select: { id: true, mediaUrl: true, mediaType: true },
         },
         _count: {
-          select: { likes: true, comments: true }, // นับจำนวนไลก์และคอมเมนต์
+          select: { likes: true, comments: true },
         },
+        // เช็คว่า User ปัจจุบันเคยกดไลก์หรือไม่
+        likes: currentUserId
+          ? {
+              where: { userId: currentUserId },
+              select: { id: true },
+            }
+          : false,
       },
     });
 
-    let nextCursor: number | null = null;
+    // 5. คำนวณ Next Cursor และจัด Format ข้อมูล
+    let nextCursor: string | null = null;
     if (posts.length > limit) {
       const nextItem = posts.pop();
-      nextCursor = nextItem ? nextItem.id : null;
+      if (nextItem) {
+        const payload: DecodedCursor = {
+          isPinned: nextItem.isPinned,
+          createdAt: nextItem.createdAt.toISOString(),
+          id: nextItem.id,
+        };
+        nextCursor = Buffer.from(JSON.stringify(payload)).toString("base64");
+      }
     }
+
+    // แปลงโครงสร้างให้ Front-end ใช้งานง่าย (ส่ง boolean isLiked แทน raw array)
+    const formattedPosts = posts.map(({ likes, ...post }) => ({
+      ...post,
+      isLiked: Array.isArray(likes) && likes.length > 0,
+    }));
 
     return NextResponse.json(
       {
         success: true,
-        data: posts,
+        data: formattedPosts,
         pagination: { nextCursor },
       },
       { status: 200 }
