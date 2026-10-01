@@ -18,22 +18,27 @@ type Place = {
   lon: number;
 };
 
-type OverpassElement = {
+type ApiPlace = {
   id: number;
-  lat?: number;
-  lon?: number;
-  center?: { lat?: number; lon?: number };
-  tags?: {
-    name?: string;
-    amenity?: string;
-    shop?: string;
-    leisure?: string;
+  name: string;
+  address: string;
+  latitude: number | string;
+  longitude: number | string;
+  openingHours: string;
+  placeTypeId: number;
+  placeType: {
+    id: number;
+    name: string;
   };
 };
 
 const position: [number, number] = [18.7883, 98.9853];
 
-const filters: { id: Filter; label: string; icon: string }[] = [
+const filters: {
+  id: Filter;
+  label: string;
+  icon: string;
+}[] = [
   { id: "all", label: "ทั้งหมด", icon: "📍" },
   { id: "clinic", label: "คลินิกสัตว์", icon: "🏥" },
   { id: "shop", label: "ร้านอาหาร/อุปกรณ์", icon: "🛍️" },
@@ -53,36 +58,71 @@ const placeIcon = L.icon({
   popupAnchor: [1, -34],
 });
 
-function toPlace(element: OverpassElement): Place | null {
-  const lat = element.lat ?? element.center?.lat;
-  const lon = element.lon ?? element.center?.lon;
+function getCategory(place: ApiPlace): {
+  category: PlaceCategory;
+  type: string;
+} {
+  const placeTypeName = place.placeType?.name?.toLowerCase() ?? "";
 
   if (
-    typeof lat !== "number" ||
-    typeof lon !== "number" ||
+    placeTypeName.includes("คลินิก") ||
+    placeTypeName.includes("โรงพยาบาล") ||
+    placeTypeName.includes("veterinary")
+  ) {
+    return {
+      category: "clinic",
+      type: "คลินิก / โรงพยาบาลสัตว์",
+    };
+  }
+
+  if (
+    placeTypeName.includes("อาบน้ำ") ||
+    placeTypeName.includes("ตัดขน") ||
+    placeTypeName.includes("groom")
+  ) {
+    return {
+      category: "grooming",
+      type: "ร้านอาบน้ำ / ตัดขน",
+    };
+  }
+
+  if (
+    placeTypeName.includes("สวน") ||
+    placeTypeName.includes("dog park") ||
+    placeTypeName.includes("park")
+  ) {
+    return {
+      category: "park",
+      type: "สวนสำหรับสุนัข",
+    };
+  }
+
+  return {
+    category: "shop",
+    type: "ร้านอาหาร / อุปกรณ์สัตว์เลี้ยง",
+  };
+}
+
+function toPlace(place: ApiPlace): Place | null {
+  const lat = Number(place.latitude);
+  const lon = Number(place.longitude);
+
+  if (
     !Number.isFinite(lat) ||
-    !Number.isFinite(lon)
+    !Number.isFinite(lon) ||
+    lat < -90 ||
+    lat > 90 ||
+    lon < -180 ||
+    lon > 180
   ) {
     return null;
   }
 
-  let category: PlaceCategory = "shop";
-  let type = "ร้านขายอาหารและอุปกรณ์สัตว์เลี้ยง";
-
-  if (element.tags?.amenity === "veterinary") {
-    category = "clinic";
-    type = "คลินิก / โรงพยาบาลสัตว์";
-  } else if (element.tags?.shop === "pet_grooming") {
-    category = "grooming";
-    type = "ร้านอาบน้ำ / ตัดขน";
-  } else if (element.tags?.leisure === "dog_park") {
-    category = "park";
-    type = "สวนสำหรับสุนัข";
-  }
+  const { category, type } = getCategory(place);
 
   return {
-    id: element.id,
-    name: element.tags?.name || "ไม่ระบุชื่อ",
+    id: place.id,
+    name: place.name || "ไม่ระบุชื่อ",
     type,
     category,
     lat,
@@ -101,7 +141,9 @@ export default function PetMap() {
 
     async function loadPlaces() {
       try {
-        const response = await fetch("/api/places", {
+        setLoading(true);
+
+        const response = await fetch("/api/places?radiusKm=5", {
           signal: controller.signal,
         });
 
@@ -109,15 +151,27 @@ export default function PetMap() {
           throw new Error(`โหลดสถานที่ไม่สำเร็จ (${response.status})`);
         }
 
-        const data: { elements?: OverpassElement[] } = await response.json();
-        const results = (data.elements ?? [])
+        const result: {
+          success: boolean;
+          data?: ApiPlace[];
+          message?: string;
+        } = await response.json();
+
+        if (!result.success) {
+          throw new Error(result.message ?? "โหลดสถานที่ไม่สำเร็จ");
+        }
+
+        const results = (result.data ?? [])
           .map(toPlace)
           .filter((place): place is Place => place !== null);
 
         setPlaces(results);
         setError("");
       } catch (loadError) {
-        if (loadError instanceof Error && loadError.name === "AbortError") {
+        if (
+          loadError instanceof Error &&
+          loadError.name === "AbortError"
+        ) {
           return;
         }
 
@@ -144,8 +198,14 @@ export default function PetMap() {
   );
 
   return (
-    <section className={styles.wrapper} aria-label="สถานที่เกี่ยวกับสัตว์เลี้ยง">
-      <div className={styles.filters} aria-label="กรองประเภทสถานที่">
+    <section
+      className={styles.wrapper}
+      aria-label="สถานที่เกี่ยวกับสัตว์เลี้ยง"
+    >
+      <div
+        className={styles.filters}
+        aria-label="กรองประเภทสถานที่"
+      >
         {filters.map((item) => (
           <button
             key={item.id}
@@ -167,7 +227,10 @@ export default function PetMap() {
           center={position}
           zoom={14}
           scrollWheelZoom
-          style={{ width: "100%", height: "100%" }}
+          style={{
+            width: "100%",
+            height: "100%",
+          }}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -189,13 +252,21 @@ export default function PetMap() {
           ))}
         </MapContainer>
 
-        {loading && <div className={styles.mapMessage}>กำลังค้นหาสถานที่…</div>}
+        {loading && (
+          <div className={styles.mapMessage}>
+            กำลังค้นหาสถานที่…
+          </div>
+        )}
       </div>
 
       <div className={styles.listHeading}>
         <div>
           <h2>สถานที่ใกล้มหาวิทยาลัย</h2>
-          <p>{loading ? "กำลังโหลดข้อมูล" : `พบ ${visiblePlaces.length} แห่ง`}</p>
+          <p>
+            {loading
+              ? "กำลังโหลดข้อมูล"
+              : `พบ ${visiblePlaces.length} แห่ง`}
+          </p>
         </div>
       </div>
 
@@ -210,9 +281,17 @@ export default function PetMap() {
               className={styles.placeCard}
               key={`${place.category}-${place.id}`}
             >
-              <span className={styles.placeIcon} aria-hidden="true">
-                {filters.find((item) => item.id === place.category)?.icon}
+              <span
+                className={styles.placeIcon}
+                aria-hidden="true"
+              >
+                {
+                  filters.find(
+                    (item) => item.id === place.category,
+                  )?.icon
+                }
               </span>
+
               <div>
                 <h3>{place.name}</h3>
                 <p>{place.type}</p>
@@ -222,7 +301,9 @@ export default function PetMap() {
         </ul>
       ) : (
         !loading && (
-          <p className={styles.empty}>ไม่พบสถานที่ในหมวดหมู่นี้</p>
+          <p className={styles.empty}>
+            ไม่พบสถานที่ในหมวดหมู่นี้
+          </p>
         )
       )}
     </section>

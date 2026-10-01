@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { PetGrid } from "./PetGrid";
 import styles from "./MarketplaceBrowser.module.css";
 
@@ -18,19 +18,75 @@ type Listing = {
 type Filter = "ALL" | "SALE" | "ADOPTION";
 type Sort = "newest" | "price-low" | "price-high";
 
-export function MarketplaceBrowser({ listings }: { listings: Listing[] }) {
+type Props = {
+  initialListings: Listing[];
+  initialCursor: number | null;
+};
+
+export function MarketplaceBrowser({ initialListings, initialCursor }: Props) {
+  const [listings, setListings] = useState<Listing[]>(initialListings);
+  const [cursor, setCursor] = useState<number | null>(initialCursor);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<Filter>("ALL");
   const [sort, setSort] = useState<Sort>("newest");
 
+  // กันผลลัพธ์ของ request เก่าไปทับ request ใหม่ (กดเปลี่ยนตัวกรองรัวๆ)
+  const requestId = useRef(0);
+
+  async function fetchListings(opts: {
+    type: Filter;
+    cursor: number | null;
+    reset: boolean;
+  }) {
+    const id = ++requestId.current;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams({ limit: "12" });
+      if (opts.type !== "ALL") params.set("type", opts.type);
+      if (opts.cursor) params.set("cursor", String(opts.cursor));
+
+      const res = await fetch(`/api/listings?${params}`);
+      const json = await res.json();
+
+      if (!res.ok || !json.success) {
+        throw new Error(json.message ?? "โหลดข้อมูลไม่สำเร็จ");
+      }
+      if (id !== requestId.current) return; // มี request ใหม่กว่าแล้ว ทิ้งอันนี้
+
+      setListings((prev) =>
+        opts.reset ? json.data : [...prev, ...json.data]
+      );
+      setCursor(json.pagination.nextCursor);
+    } catch (e) {
+      if (id !== requestId.current) return;
+      setError(e instanceof Error ? e.message : "เกิดข้อผิดพลาด");
+    } finally {
+      if (id === requestId.current) setLoading(false);
+    }
+  }
+
+  function handleFilterChange(next: Filter) {
+    if (next === filter) return;
+    setFilter(next);
+    fetchListings({ type: next, cursor: null, reset: true });
+  }
+
+  function handleLoadMore() {
+    if (!cursor) return;
+    fetchListings({ type: filter, cursor, reset: false });
+  }
+
+  // search + sort ทำฝั่ง client บนรายการที่โหลดมาแล้ว (เหมือนเดิม)
   const visibleListings = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return listings
+    return [...listings]
       .filter((listing) => {
-        const matchesType =
-          filter === "ALL" || listing.type.toUpperCase() === filter;
-
         const text = [
           listing.title,
           listing.species,
@@ -39,23 +95,21 @@ export function MarketplaceBrowser({ listings }: { listings: Listing[] }) {
           .join(" ")
           .toLowerCase();
 
-        return matchesType && (!query || text.includes(query));
+        return !query || text.includes(query);
       })
       .sort((a, b) => {
         if (sort === "price-low") {
           return Number(a.price ?? 0) - Number(b.price ?? 0);
         }
-
         if (sort === "price-high") {
           return Number(b.price ?? 0) - Number(a.price ?? 0);
         }
-
         return (
           new Date(b.createdAt).getTime() -
           new Date(a.createdAt).getTime()
         );
       });
-  }, [listings, search, filter, sort]);
+  }, [listings, search, sort]);
 
   return (
     <main className={styles.marketplace}>
@@ -106,7 +160,8 @@ export function MarketplaceBrowser({ listings }: { listings: Listing[] }) {
               filter === value ? styles.activeFilter : styles.filter
             }
             aria-pressed={filter === value}
-            onClick={() => setFilter(value)}
+            disabled={loading}
+            onClick={() => handleFilterChange(value)}
           >
             {label}
           </button>
@@ -117,14 +172,28 @@ export function MarketplaceBrowser({ listings }: { listings: Listing[] }) {
         พบ {visibleListings.length} ประกาศ
       </p>
 
+      {error && <p role="alert">{error}</p>}
+
       {visibleListings.length > 0 ? (
         <PetGrid items={visibleListings} />
       ) : (
-        <div className={styles.empty}>
-          <span aria-hidden="true">🐾</span>
-          <h2>ไม่พบประกาศที่ตรงกับการค้นหา</h2>
-          <p>ลองเปลี่ยนคำค้นหาหรือตัวกรองดูครับ</p>
-        </div>
+        !loading && (
+          <div className={styles.empty}>
+            <span aria-hidden="true">🐾</span>
+            <h2>ไม่พบประกาศที่ตรงกับการค้นหา</h2>
+            <p>ลองเปลี่ยนคำค้นหาหรือตัวกรองดูครับ</p>
+          </div>
+        )
+      )}
+
+      {cursor && (
+        <button
+          type="button"
+          onClick={handleLoadMore}
+          disabled={loading}
+        >
+          {loading ? "กำลังโหลด..." : "โหลดเพิ่ม"}
+        </button>
       )}
     </main>
   );

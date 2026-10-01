@@ -2,16 +2,83 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+
 import { SiteShell } from "@/components/layout/SiteShell";
+
 import styles from "./page.module.css";
 
 export default function CreateListingPage() {
   const [type, setType] = useState<"SALE" | "ADOPTION">("SALE");
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage("ฟอร์มพร้อมแล้ว แต่ยังไม่ได้เชื่อม API สำหรับบันทึกประกาศ");
+
+    const form = event.currentTarget;
+
+    setMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData(form);
+
+      const title = String(formData.get("title") ?? "").trim();
+      const species = String(formData.get("species") ?? "").trim();
+      const description = String(formData.get("description") ?? "").trim();
+      const price = Number(formData.get("price") ?? 0);
+
+      const mediaUrls = formData
+        .getAll("mediaUrl")
+        .map((value) => String(value).trim())
+        .filter(Boolean);
+
+      if (mediaUrls.length === 0) {
+        setMessage("กรุณาเพิ่ม URL รูปภาพอย่างน้อย 1 รูป");
+        return;
+      }
+
+      const response = await fetch("/api/listings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          species,
+          price,
+          type,
+          mediaUrls,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.errors) {
+          const firstError = Object.values(result.errors)
+            .flat()
+            .find(Boolean);
+
+          setMessage(String(firstError ?? "ข้อมูลไม่ถูกต้อง"));
+        } else {
+          setMessage(result.message ?? "สร้างประกาศไม่สำเร็จ");
+        }
+
+        return;
+      }
+
+      setMessage("ลงประกาศสำเร็จ");
+
+      form.reset();
+      setType("SALE");
+    } catch (error) {
+      console.error("Create listing error:", error);
+      setMessage("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -22,14 +89,19 @@ export default function CreateListingPage() {
         </Link>
 
         <header className={styles.heading}>
-          <span className={styles.eyebrow}>PETMORCHOR MARKETPLACE</span>
+          <span className={styles.eyebrow}>
+            PETMORCHOR MARKETPLACE
+          </span>
+
           <h1>สร้างประกาศสัตว์เลี้ยง</h1>
+
           <p>กรอกข้อมูลน้องให้ครบถ้วนก่อนลงประกาศ</p>
         </header>
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <section className={styles.section}>
             <h2>ประเภทประกาศ</h2>
+
             <div className={styles.typeOptions}>
               <label className={styles.typeOption}>
                 <input
@@ -39,6 +111,7 @@ export default function CreateListingPage() {
                   checked={type === "SALE"}
                   onChange={() => setType("SALE")}
                 />
+
                 <span>ขาย</span>
               </label>
 
@@ -50,6 +123,7 @@ export default function CreateListingPage() {
                   checked={type === "ADOPTION"}
                   onChange={() => setType("ADOPTION")}
                 />
+
                 <span>หาบ้าน / ให้รับเลี้ยง</span>
               </label>
             </div>
@@ -60,6 +134,7 @@ export default function CreateListingPage() {
 
             <label className={styles.field}>
               ชื่อประกาศ
+
               <input
                 name="title"
                 type="text"
@@ -71,6 +146,7 @@ export default function CreateListingPage() {
 
             <label className={styles.field}>
               ประเภทสัตว์
+
               <input
                 name="species"
                 type="text"
@@ -81,6 +157,7 @@ export default function CreateListingPage() {
 
             <label className={styles.field}>
               ราคา (บาท)
+
               <input
                 name="price"
                 type="number"
@@ -90,11 +167,15 @@ export default function CreateListingPage() {
                 placeholder="ระบุราคา หรือ 0 หากให้รับเลี้ยงฟรี"
                 required
               />
-              <small>ประกาศหาบ้านฟรีให้ระบุราคาเป็น 0</small>
+
+              <small>
+                ประกาศหาบ้านฟรีให้ระบุราคาเป็น 0
+              </small>
             </label>
 
             <label className={styles.field}>
               รายละเอียด
+
               <textarea
                 name="description"
                 rows={6}
@@ -106,17 +187,20 @@ export default function CreateListingPage() {
 
           <section className={styles.section}>
             <h2>รูปภาพ</h2>
+
             <p className={styles.helper}>
-              เพิ่ม URL ของรูปภาพ ระบบฐานข้อมูลจะบันทึกแต่ละรายการเป็น
-              ListingMedia
+              เพิ่ม URL ของรูปภาพอย่างน้อย 1 รูป
             </p>
 
             {[1, 2, 3].map((number) => (
               <label className={styles.field} key={number}>
-                URL รูปภาพ {number}{number === 1 ? " (ไม่บังคับ)" : ""}
+                URL รูปภาพ {number}
+                {number === 1 ? " (จำเป็น)" : ""}
+
                 <input
                   name="mediaUrl"
                   type="url"
+                  required={number === 1}
                   placeholder="https://example.com/pet-photo.jpg"
                 />
               </label>
@@ -124,7 +208,8 @@ export default function CreateListingPage() {
           </section>
 
           <p className={styles.note}>
-            สถานะประกาศเริ่มต้นเป็น “พร้อมใช้งาน” และบัญชีผู้ลงประกาศจะผูกกับผู้ใช้ที่เข้าสู่ระบบ
+            สถานะประกาศเริ่มต้นเป็น “พร้อมใช้งาน”
+            และบัญชีผู้ลงประกาศจะผูกกับผู้ใช้ที่เข้าสู่ระบบ
           </p>
 
           {message && (
@@ -133,8 +218,12 @@ export default function CreateListingPage() {
             </p>
           )}
 
-          <button className={styles.submit} type="submit">
-            ลงประกาศ
+          <button
+            className={styles.submit}
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "กำลังลงประกาศ..." : "ลงประกาศ"}
           </button>
         </form>
       </main>
