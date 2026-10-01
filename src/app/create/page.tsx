@@ -24,6 +24,17 @@ export default function CreatePage() {
               เริ่มลงประกาศ <span aria-hidden="true">→</span>
             </span>
           </Link>
+          <Link
+            href="/community/create"
+            className={`${styles.card} ${styles.purple}`}
+          >
+            <span className={styles.icon} aria-hidden="true">💬</span>
+            <h2>สร้างโพสต์ชุมชน</h2>
+            <p>แบ่งปันเรื่องราวหรือขอความช่วยเหลือจากชุมชนคนรักสัตว์</p>
+            <span className={styles.action}>
+              ไปที่ชุมชน <span aria-hidden="true">→</span>
+            </span>
+          </Link> 
         </div>
 
         <Link href="/" className={styles.back}>

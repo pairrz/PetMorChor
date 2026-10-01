@@ -1,5 +1,5 @@
 .hero {
-  padding: 32px 24px 40px;
+  padding: 24px 24px 0;
 }
 
 .container {
@@ -7,19 +7,19 @@
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
   align-items: center;
-  gap: 40px;
+  gap: 32px;
   width: min(100%, 1200px);
-  min-height: 360px;
+  min-height: 270px;
   box-sizing: border-box;
   margin: 0 auto;
-  padding: 52px 64px;
+  padding: 32px 56px;
   overflow: hidden;
-  border: 1px solid #e9defe;
+  border: 1px solid #e3d4ff;
   border-radius: 28px;
   background:
     radial-gradient(circle at 83% 20%, rgb(255 255 255 / 85%), transparent 27%),
-    linear-gradient(120deg, #f5f0ff 0%, #eee8ff 58%, #fff3e5 100%);
-  box-shadow: 0 18px 50px rgb(66 44 103 / 8%);
+    linear-gradient(120deg, #f0e7ff 0%, #e9ddff 58%, #ffede2 100%);
+  box-shadow: 0 18px 50px rgb(80 43 145 / 13%);
 }
 
 .container::before,
@@ -35,7 +35,7 @@
   right: 20%;
   width: 240px;
   height: 240px;
-  background: rgb(255 255 255 / 28%);
+  background: rgb(255 255 255 / 30%);
 }
 
 .container::after {
@@ -43,7 +43,7 @@
   bottom: -150px;
   width: 320px;
   height: 320px;
-  background: rgb(255 214 160 / 22%);
+  background: rgb(255 139 94 / 18%);
 }
 
 .content,
@@ -56,48 +56,48 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #7652c8;
+  color: #7041c9;
   font-size: 12px;
   font-weight: 750;
   letter-spacing: 0.12em;
 }
 
 .title {
-  margin: 16px 0 14px;
-  color: #20243a;
-  font-size: clamp(34px, 4vw, 52px);
+  margin: 10px 0;
+  color: #241b38;
+  font-size: clamp(30px, 3vw, 40px);
   font-weight: 750;
   letter-spacing: -0.04em;
   line-height: 1.2;
 }
 
 .title span {
-  color: #7652c8;
+  color: #e56d4d;
 }
 
 .description {
   max-width: 520px;
   margin: 0;
-  color: #626579;
-  font-size: 16px;
-  line-height: 1.8;
+  color: #554c68;
+  font-size: 15px;
+  line-height: 1.7;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 28px;
+  margin-top: 18px;
 }
 
 .primaryCta,
 .secondaryCta {
   display: inline-flex;
-  min-height: 48px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 0 20px;
+  padding: 0 18px;
   border-radius: 12px;
   font-size: 14px;
   font-weight: 650;
@@ -110,20 +110,20 @@
 
 .primaryCta {
   color: #fff;
-  background: #7652c8;
-  box-shadow: 0 8px 20px rgb(118 82 200 / 24%);
+  background: linear-gradient(135deg, #7848d5, #5c32b8);
+  box-shadow: 0 8px 20px rgb(94 51 184 / 30%);
 }
 
 .primaryCta:hover {
   transform: translateY(-2px);
-  background: #6843bb;
-  box-shadow: 0 12px 24px rgb(118 82 200 / 30%);
+  background: linear-gradient(135deg, #693ac5, #4e279f);
+  box-shadow: 0 12px 24px rgb(94 51 184 / 36%);
 }
 
 .secondaryCta {
-  border: 1px solid #ded7ed;
-  color: #38334a;
-  background: rgb(255 255 255 / 78%);
+  border: 1px solid #d7c7f0;
+  color: #49366f;
+  background: rgb(255 255 255 / 86%);
 }
 
 .secondaryCta:hover {
@@ -133,76 +133,76 @@
 
 .visual {
   display: grid;
-  min-height: 240px;
+  min-height: 170px;
   place-items: center;
 }
 
 .paw {
   display: grid;
-  width: 176px;
-  height: 176px;
+  width: 150px;
+  height: 150px;
   place-items: center;
-  border: 1px solid rgb(255 255 255 / 90%);
+  border: 1px solid rgb(255 255 255 / 95%);
   border-radius: 50%;
-  background: linear-gradient(145deg, #fff, #f6eaff);
-  box-shadow: 0 24px 60px rgb(102 74 156 / 17%);
-  font-size: 78px;
+  background: linear-gradient(145deg, #fff, #f0e5ff);
+  box-shadow: 0 24px 60px rgb(91 54 151 / 23%);
+  font-size: 68px;
   transform: rotate(-12deg);
 }
 
 .note {
   position: absolute;
   right: 0;
-  bottom: 2px;
+  bottom: 0;
   display: grid;
   gap: 5px;
-  max-width: 250px;
-  padding: 16px 20px;
-  border: 1px solid rgb(255 255 255 / 90%);
+  max-width: 230px;
+  padding: 13px 16px;
+  border: 1px solid rgb(255 255 255 / 95%);
   border-radius: 16px;
-  background: rgb(255 255 255 / 92%);
-  box-shadow: 0 12px 32px rgb(55 42 80 / 12%);
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 12px 32px rgb(55 42 80 / 15%);
 }
 
 .note span {
-  color: #777488;
+  color: #777087;
   font-size: 12px;
 }
 
 .note strong {
-  color: #29243a;
+  color: #342644;
   font-size: 14px;
 }
 
 .tag {
   position: absolute;
-  top: 8px;
+  top: 0;
   left: 0;
-  padding: 10px 14px;
-  border: 1px solid rgb(255 255 255 / 90%);
+  padding: 9px 13px;
+  border: 1px solid rgb(255 255 255 / 95%);
   border-radius: 999px;
-  color: #5c438f;
-  background: rgb(255 255 255 / 85%);
-  box-shadow: 0 8px 24px rgb(55 42 80 / 8%);
+  color: #6238b8;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 8px 24px rgb(55 42 80 / 10%);
   font-size: 12px;
   font-weight: 650;
 }
 
 @media (max-width: 700px) {
   .hero {
-    padding: 20px 16px 28px;
+    padding: 20px 16px 0;
   }
 
   .container {
     grid-template-columns: 1fr;
     gap: 12px;
     min-height: auto;
-    padding: 32px 24px 24px;
+    padding: 28px 24px 22px;
     border-radius: 22px;
   }
 
   .title {
-    font-size: clamp(32px, 8vw, 42px);
+    font-size: clamp(30px, 8vw, 38px);
   }
 
   .description {
@@ -210,20 +210,20 @@
   }
 
   .visual {
-    min-height: 200px;
+    min-height: 170px;
   }
 
   .paw {
-    width: 140px;
-    height: 140px;
-    font-size: 62px;
+    width: 130px;
+    height: 130px;
+    font-size: 58px;
   }
 
   .note {
     right: 0;
     bottom: 0;
-    max-width: 220px;
-    padding: 12px 14px;
+    max-width: 210px;
+    padding: 11px 13px;
   }
 
   .tag {
@@ -236,13 +236,4 @@
   .secondaryCta {
     transition: none;
   }
-}
-
-.hero {
-  height: 360px;
-  min-height: 360px;
-  box-sizing: border-box;
-}
-.hero {
-  margin-bottom: 100px;
 }

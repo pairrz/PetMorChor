@@ -2,12 +2,13 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
   Menu,
   MessageCircle,
+  Plus,
   Search,
   X,
 } from "lucide-react";
@@ -25,11 +26,12 @@ async function fetchCurrentUser(): Promise<User | null> {
   });
 
   if (response.status === 401) return null;
-  if (!response.ok) throw new Error("ตรวจสอบสถานะการเข้าสู่ระบบไม่สำเร็จ");
+  if (!response.ok) {
+    throw new Error("ตรวจสอบสถานะการเข้าสู่ระบบไม่สำเร็จ");
+  }
 
   const data = await response.json();
 
-  // รองรับ API ที่คืน { user: null } หรือคืนข้อมูลผู้ใช้โดยตรง
   if (data && Object.prototype.hasOwnProperty.call(data, "user")) {
     return data.user ?? null;
   }
@@ -40,6 +42,7 @@ async function fetchCurrentUser(): Promise<User | null> {
 export function SiteShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [logoutError, setLogoutError] = useState("");
+  const pathname = usePathname();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -50,28 +53,45 @@ export function SiteShell({ children }: { children: ReactNode }) {
   });
 
   async function handleLogout() {
-  setLogoutError("");
+    setLogoutError("");
 
-  try {
-    const response = await fetch("/api/auth/logout", {
-      method: "POST",
-      credentials: "include",
-    });
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
 
-    if (!response.ok) throw new Error("ออกจากระบบไม่สำเร็จ");
+      if (!response.ok) {
+        throw new Error("ออกจากระบบไม่สำเร็จ");
+      }
 
-    queryClient.setQueryData(["auth", "me"], null);
-    setOpen(false);
-    router.refresh();
-  } catch {
-    setLogoutError("ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง");
+      queryClient.setQueryData(["auth", "me"], null);
+      setOpen(false);
+      router.refresh();
+    } catch {
+      setLogoutError("ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง");
+    }
   }
-}
 
   const avatarLetter = (user?.name || user?.email || "P")
     .trim()
     .charAt(0)
     .toUpperCase();
+
+  const createHref = pathname.startsWith("/marketplace")
+    ? pathname.startsWith("/marketplace/create")
+      ? null
+      : "/marketplace/create"
+    : pathname.startsWith("/community")
+      ? pathname.startsWith("/community/create")
+        ? null
+        : "/community/create"
+      : null;
+
+  const createLabel =
+    createHref === "/marketplace/create"
+      ? "สร้างประกาศสัตว์เลี้ยง"
+      : "สร้างโพสต์ชุมชน";
 
   return (
     <main className="app-shell">
@@ -149,17 +169,20 @@ export function SiteShell({ children }: { children: ReactNode }) {
             {label}
           </Link>
         ))}
-
-        <Link
-          className="post-listing"
-          href="/create"
-          onClick={() => setOpen(false)}
-        >
-          + Post Something
-        </Link>
       </nav>
 
       {children}
+
+      {createHref && (
+        <Link
+          href={createHref}
+          className="floating-create-button"
+          aria-label={createLabel}
+          title={createLabel}
+        >
+          <Plus size={26} />
+        </Link>
+      )}
 
       <footer>
         <Link className="brand" href="/">
@@ -170,16 +193,12 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </Link>
 
         <p>พื้นที่สำหรับสัตว์เลี้ยงและคนรักสัตว์รอบมหาวิทยาลัย</p>
-
         <small>© 2026 PetMorChor · มหาวิทยาลัยและพื้นที่ใกล้เคียง</small>
       </footer>
 
       <div className="bottom-nav">
         <Link href="/">หน้าแรก</Link>
         <Link href="/discover">ค้นหาใกล้ฉัน</Link>
-        <Link href="/create" className="plus">
-          +
-        </Link>
         <Link href="/chat">แชต</Link>
         <Link href="/profile">โปรไฟล์</Link>
       </div>

@@ -45,3 +45,41 @@
     align-self: flex-start;
   }
 }
+
+.floating-create-button {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 1000;
+  display: grid;
+  width: 56px;
+  height: 56px;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #7652c8;
+  box-shadow: 0 6px 18px rgb(50 30 90 / 25%);
+  text-decoration: none;
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.floating-create-button:hover {
+  background: #6843bb;
+  box-shadow: 0 8px 22px rgb(50 30 90 / 30%);
+  transform: translateY(-2px);
+}
+
+.floating-create-button:focus-visible {
+  outline: 3px solid #cdbbfa;
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .floating-create-button {
+    right: 18px;
+    bottom: 82px;
+  }
+}
