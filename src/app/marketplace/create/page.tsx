@@ -33,11 +33,6 @@ export default function CreateListingPage() {
         .map((value) => String(value).trim())
         .filter(Boolean);
 
-      if (mediaUrls.length === 0) {
-        setMessage("กรุณาเพิ่ม URL รูปภาพอย่างน้อย 1 รูป");
-        return;
-      }
-
       const response = await fetch("/api/listings", {
         method: "POST",
         headers: {

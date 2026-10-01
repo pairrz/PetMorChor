@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
+import { auth } from "@/auth"; // หรือ import { auth } ตามที่โปรเจกต์ export  
 
 const SALT_ROUNDS = 10
 
@@ -36,20 +37,54 @@ export async function createSession(userId: number) {
   });
 }
 
-// ดึง Current User (หรือ null ถ้าเป็น Visitor)
 export async function getCurrentUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session_token")?.value;
-  if (!token) return null;
+  try {
+    // 1. เช็ก custom session ก่อน
+    const cookieStore = await cookies();
+    const token = cookieStore.get("session_token")?.value;
 
-  const session = await prisma.session.findUnique({
-    where: { sessionToken: token },
-    include: { user: true },
-  });
+    if (token) {
+      const session = await prisma.session.findUnique({
+        where: {
+          sessionToken: token,
+        },
+        include: {
+          user: true,
+        },
+      });
 
-  if (!session || session.expires < new Date()) {
+      if (session) {
+        if (session.expires < new Date()) {
+          await prisma.session.delete({
+            where: {
+              sessionToken: token,
+            },
+          });
+
+          return null;
+        }
+
+        return session.user;
+      }
+    }
+
+    // 2. ถ้าไม่มี custom session ให้เช็ก Auth.js
+    const authSession = await auth();
+
+    if (!authSession?.user?.email) {
+      return null;
+    }
+
+    // 3. หา User จาก email
+    const user = await prisma.user.findUnique({
+      where: {
+        email: authSession.user.email,
+      },
+    });
+
+    return user;
+  } catch (error) {
+    console.error("getCurrentUser error:", error);
     return null;
   }
-
-  return session.user;
 }

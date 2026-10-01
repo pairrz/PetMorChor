@@ -2,9 +2,20 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma"; // หรือ import { prisma } ตามที่โปรเจกต์ export
 import { nanoid } from "nanoid";
+import { auth } from "@/auth";
 
 const SESSION_DURATION_DAYS = 7;
 const SESSION_COOKIE_NAME = "session_token";
+
+const userSelect = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  oauthProvider: true,
+  createdAt: true,
+  updatedAt: true,
+};
 
 // Helper สำหรับคำนวณวันหมดอายุและ Cookie Options ตามมาตรฐาน
 function getSessionCookieOptions(expires: Date) {
@@ -69,35 +80,56 @@ export async function createSession(userId: number, response: NextResponse) {
 export async function getCurrentUser() {
   try {
     const cookieStore = await cookies();
-    const sessionToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-    if (!sessionToken) return null;
+    // =========================
+    // 1. Normal Login
+    // =========================
+    const token = cookieStore.get("session_token")?.value;
 
-    // ค้นหา Session ใน DB ควบคู่กับการตรวจวันหมดอายุ
-    const session = await prisma.session.findUnique({
-      where: { sessionToken },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true, // ถ้ามี
+    if (token) {
+      const session = await prisma.session.findUnique({
+        where: {
+          sessionToken: token,
+        },
+        include: {
+          user: {
+            select: userSelect,
           },
         },
-      },
-    });
+      });
 
-    // หากไม่มี Session หรือ Session หมดอายุแล้ว ให้ถือว่าไม่มีสิทธิ์
-    if (!session || new Date() > session.expires) {
       if (session) {
-        // ล้างขยะ Session ที่หมดอายุแล้วใน DB ทิ้ง
-        await prisma.session.delete({ where: { sessionToken } }).catch(() => {});
+        if (session.expires < new Date()) {
+          await prisma.session.delete({
+            where: {
+              sessionToken: token,
+            },
+          });
+
+          return null;
+        }
+
+        return session.user;
       }
+    }
+
+    // =========================
+    // 2. Google / Auth.js Login
+    // =========================
+    const authSession = await auth();
+
+    if (!authSession?.user?.email) {
       return null;
     }
 
-    return session.user;
+    const user = await prisma.user.findUnique({
+      where: {
+        email: authSession.user.email,
+      },
+      select: userSelect,
+    });
+
+    return user;
   } catch (error) {
     console.error("getCurrentUser error:", error);
     return null;
