@@ -1,0 +1,183 @@
+.page {
+  width: min(100% - 32px, 640px);
+  margin: 0 auto;
+  padding: 28px 0 72px;
+}
+
+.heading {
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  color: #7652c8;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.heading h1 {
+  margin: 8px 0;
+  color: #252238;
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 800;
+}
+
+.heading p {
+  margin: 0;
+  color: #737184;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.feed {
+  display: grid;
+  gap: 22px;
+}
+
+.post {
+  overflow: hidden;
+  border: 1px solid #e9e7ec;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(30 20 50 / 4%);
+}
+
+.postHeader {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  gap: 11px;
+  padding: 12px 16px;
+}
+
+.avatar {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, #f9c96a, #bd70c7, #7652c8);
+  font-weight: 800;
+}
+
+.author {
+  display: grid;
+  gap: 3px;
+}
+
+.author strong {
+  color: #302b42;
+  font-size: 14px;
+}
+
+.author time {
+  color: #888497;
+  font-size: 12px;
+}
+
+.category {
+  margin-left: auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #6843bb;
+  background: #f5f0ff;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.pinned {
+  margin: 4px 16px 0;
+  color: #8b6414;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.caption {
+  margin: 16px 16px 6px;
+  color: #29243a;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.description {
+  margin: 0 16px;
+  color: #514d60;
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.media {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  margin-top: 14px;
+  overflow: hidden;
+  background: #f5f3f7;
+}
+
+.media img,
+.media video {
+  display: block;
+  width: 100%;
+  max-height: 620px;
+  aspect-ratio: 4 / 5;
+  background: #f3f1f6;
+  object-fit: cover;
+}
+
+.postFooter {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+  padding: 14px 16px 17px;
+  color: #716c80;
+  font-size: 14px;
+}
+
+.empty {
+  padding: 48px 20px;
+  border: 1px dashed #ded8e9;
+  border-radius: 18px;
+  background: #fff;
+  text-align: center;
+}
+
+.empty > span {
+  font-size: 34px;
+}
+
+.empty h2 {
+  margin: 12px 0 6px;
+  color: #302b42;
+  font-size: 18px;
+}
+
+.empty p {
+  margin: 0;
+  color: #737184;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .page {
+    width: 100%;
+    padding: 20px 0 48px;
+  }
+
+  .heading {
+    padding: 0 16px;
+  }
+
+  .feed {
+    gap: 14px;
+  }
+
+  .post {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+}
