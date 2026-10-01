@@ -2,14 +2,13 @@
 
 import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { SiteShell } from "@/components/layout/SiteShell";
 import styles from "./page.module.css";
 
 export default function CreateListingPage() {
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [type, setType] = useState<"SALE" | "ADOPTION">("SALE");
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -87,6 +86,7 @@ export default function CreateListingPage() {
 
       form.reset();
       setType("SALE");
+      setSelectedFiles([]);
     } catch (error) {
       console.error("Create listing error:", error);
       setMessage("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
