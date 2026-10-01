@@ -87,3 +87,9 @@
     opacity: 0.35;
   }
 }
+
+.banner {
+  height: 360px;
+  min-height: 360px;
+  box-sizing: border-box;
+}

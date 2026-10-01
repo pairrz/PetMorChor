@@ -82,7 +82,6 @@ export async function getCurrentUser() {
             id: true,
             name: true,
             email: true,
-            image: true,
             role: true, // ถ้ามี
           },
         },

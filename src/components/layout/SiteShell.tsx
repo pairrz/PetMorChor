@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
-
+import { useRouter } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
   Menu,
@@ -10,15 +11,67 @@ import {
   Search,
   X,
 } from "lucide-react";
-import { BannerPromote } from "@/components/home/BannerPromote";
 import { nav } from "@/lib/pet-data";
 
-export function SiteShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+type User = {
+  name?: string | null;
+  email?: string | null;
+};
+
+async function fetchCurrentUser(): Promise<User | null> {
+  const response = await fetch("/api/auth/me", {
+    credentials: "include",
+    cache: "no-store",
+  });
+
+  if (response.status === 401) return null;
+  if (!response.ok) throw new Error("ตรวจสอบสถานะการเข้าสู่ระบบไม่สำเร็จ");
+
+  const data = await response.json();
+
+  // รองรับ API ที่คืน { user: null } หรือคืนข้อมูลผู้ใช้โดยตรง
+  if (data && Object.prototype.hasOwnProperty.call(data, "user")) {
+    return data.user ?? null;
+  }
+
+  return data ?? null;
+}
+
+export function SiteShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const { data: user, isPending } = useQuery({
+    queryKey: ["auth", "me"],
+    queryFn: fetchCurrentUser,
+    retry: false,
+  });
+
+  async function handleLogout() {
+  setLogoutError("");
+
+  try {
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+
+    if (!response.ok) throw new Error("ออกจากระบบไม่สำเร็จ");
+
+    queryClient.setQueryData(["auth", "me"], null);
+    setOpen(false);
+    router.refresh();
+  } catch {
+    setLogoutError("ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง");
+  }
+}
+
+  const avatarLetter = (user?.name || user?.email || "P")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   return (
     <main className="app-shell">
@@ -50,31 +103,58 @@ export function SiteShell({
           </Link>
 
           <Link href="/profile">
-            <span className="avatar">P</span>
+            <span className="avatar">{avatarLetter}</span>
             โปรไฟล์
           </Link>
         </div>
-        <button type="button" className="login-button">
-          <Link href="/login">เข้าสู่ระบบ</Link>
-        </button>
+
+        {isPending ? (
+          <button className="login-button" type="button" disabled>
+            กำลังตรวจสอบ...
+          </button>
+        ) : user ? (
+          <button
+            className="login-button"
+            type="button"
+            onClick={handleLogout}
+          >
+            ออกจากระบบ
+          </button>
+        ) : (
+          <Link className="login-button" href="/login">
+            เข้าสู่ระบบ
+          </Link>
+        )}
 
         <button
           className="mobile-menu"
+          type="button"
           onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
+          aria-label={open ? "ปิดเมนู" : "เปิดเมนู"}
+          aria-expanded={open}
         >
           {open ? <X /> : <Menu />}
         </button>
       </header>
 
+      {logoutError && (
+        <p role="alert" className="auth-error">
+          {logoutError}
+        </p>
+      )}
+
       <nav className={`main-nav ${open ? "open" : ""}`}>
         {nav.map(([label, href]) => (
-          <Link key={href} href={href}>
+          <Link key={href} href={href} onClick={() => setOpen(false)}>
             {label}
           </Link>
         ))}
 
-        <Link className="post-listing" href="/create">
+        <Link
+          className="post-listing"
+          href="/create"
+          onClick={() => setOpen(false)}
+        >
           + Post Something
         </Link>
       </nav>
@@ -91,9 +171,7 @@ export function SiteShell({
 
         <p>พื้นที่สำหรับสัตว์เลี้ยงและคนรักสัตว์รอบมหาวิทยาลัย</p>
 
-        <small>
-          © 2026 PetMorChor · มหาวิทยาลัยและพื้นที่ใกล้เคียง
-        </small>
+        <small>© 2026 PetMorChor · มหาวิทยาลัยและพื้นที่ใกล้เคียง</small>
       </footer>
 
       <div className="bottom-nav">
