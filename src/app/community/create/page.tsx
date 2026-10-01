@@ -92,7 +92,6 @@ export default function CreateCommunityPostPage() {
               name="description"
               rows={8}
               placeholder="เล่าเรื่องราวหรือรายละเอียดที่ต้องการแบ่งปัน"
-              required
             />
           </label>
 

@@ -1,17 +1,49 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SiteShell } from "@/components/layout/SiteShell";
 import styles from "./page.module.css";
 
 export default function CreateListingPage() {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [type, setType] = useState<"SALE" | "ADOPTION">("SALE");
   const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage("ฟอร์มพร้อมแล้ว แต่ยังไม่ได้เชื่อม API สำหรับบันทึกประกาศ");
+    setMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      formData.set("type", type);
+
+      const response = await fetch("/api/marketplace/listings", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        throw new Error(result?.error || "ลงประกาศไม่สำเร็จ กรุณาลองอีกครั้ง");
+      }
+
+      router.push("/marketplace");
+      router.refresh();
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "เกิดข้อผิดพลาด กรุณาลองอีกครั้ง",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -24,10 +56,14 @@ export default function CreateListingPage() {
         <header className={styles.heading}>
           <span className={styles.eyebrow}>PETMORCHOR MARKETPLACE</span>
           <h1>สร้างประกาศสัตว์เลี้ยง</h1>
-          <p>กรอกข้อมูลน้องให้ครบถ้วนก่อนลงประกาศ</p>
+          <p>กรอกข้อมูลน้องก่อนลงประกาศ</p>
         </header>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit}
+          aria-busy={isSubmitting}
+        >
           <section className={styles.section}>
             <h2>ประเภทประกาศ</h2>
             <div className={styles.typeOptions}>
@@ -82,6 +118,7 @@ export default function CreateListingPage() {
             <label className={styles.field}>
               ราคา (บาท)
               <input
+                key={type}
                 name="price"
                 type="number"
                 min="0"
@@ -94,42 +131,99 @@ export default function CreateListingPage() {
             </label>
 
             <label className={styles.field}>
-              รายละเอียด
+              รายละเอียด (ไม่บังคับ)
               <textarea
                 name="description"
                 rows={6}
                 placeholder="อธิบายรายละเอียดของสัตว์เลี้ยง"
-                required
               />
             </label>
           </section>
 
           <section className={styles.section}>
             <h2>รูปภาพสัตว์เลี้ยง</h2>
-                <label className={styles.field}>
-                    เลือกรูปภาพ
-                    <input
-                        name="mediaFiles"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                    />
-                    <small>เลือกได้หลายรูป</small>
-                </label>
-        </section>
+
+            <div className={styles.field}>
+              <span>เลือกรูปภาพ</span>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 12px",
+                  border: "1px solid #ded2ef",
+                  borderRadius: 8,
+                  background: "#fff",
+                }}
+              >
+                <span
+                  aria-live="polite"
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: "hidden",
+                    color: "#716b80",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {selectedFiles.length
+                    ? selectedFiles.join(", ")
+                    : "ยังไม่ได้เลือกไฟล์"}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    flexShrink: 0,
+                    padding: "8px 14px",
+                    border: 0,
+                    borderRadius: 6,
+                    color: "#fff",
+                    background: "#6840c6",
+                    cursor: "pointer",
+                  }}
+                >
+                  เพิ่มไฟล์
+                </button>
+
+                <input
+                  ref={fileInputRef}
+                  name="mediaFiles"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  onChange={(event) =>
+                    setSelectedFiles(
+                      Array.from(event.target.files ?? []).map(
+                        (file) => file.name,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <small>เลือกได้หลายรูป</small>
+            </div>
+          </section>
 
           <p className={styles.note}>
-            สถานะประกาศเริ่มต้นเป็น “พร้อมใช้งาน” และบัญชีผู้ลงประกาศจะผูกกับผู้ใช้ที่เข้าสู่ระบบ
+            บัญชีผู้ลงประกาศจะผูกกับผู้ใช้ที่เข้าสู่ระบบ
           </p>
 
           {message && (
-            <p className={styles.message} role="status">
+            <p className={styles.message} role="alert">
               {message}
             </p>
           )}
 
-          <button className={styles.submit} type="submit">
-            ลงประกาศ
+          <button
+            className={styles.submit}
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "กำลังลงประกาศ..." : "ลงประกาศ"}
           </button>
         </form>
       </main>
