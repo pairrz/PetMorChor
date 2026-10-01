@@ -237,3 +237,12 @@
     transition: none;
   }
 }
+
+.hero {
+  height: 360px;
+  min-height: 360px;
+  box-sizing: border-box;
+}
+.hero {
+  margin-bottom: 100px;
+}

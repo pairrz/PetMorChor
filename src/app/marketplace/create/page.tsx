@@ -105,23 +105,18 @@ export default function CreateListingPage() {
           </section>
 
           <section className={styles.section}>
-            <h2>รูปภาพ</h2>
-            <p className={styles.helper}>
-              เพิ่ม URL ของรูปภาพ ระบบฐานข้อมูลจะบันทึกแต่ละรายการเป็น
-              ListingMedia
-            </p>
-
-            {[1, 2, 3].map((number) => (
-              <label className={styles.field} key={number}>
-                URL รูปภาพ {number}{number === 1 ? " (ไม่บังคับ)" : ""}
-                <input
-                  name="mediaUrl"
-                  type="url"
-                  placeholder="https://example.com/pet-photo.jpg"
-                />
-              </label>
-            ))}
-          </section>
+            <h2>รูปภาพสัตว์เลี้ยง</h2>
+                <label className={styles.field}>
+                    เลือกรูปภาพ
+                    <input
+                        name="mediaFiles"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                    />
+                    <small>เลือกได้หลายรูป</small>
+                </label>
+        </section>
 
           <p className={styles.note}>
             สถานะประกาศเริ่มต้นเป็น “พร้อมใช้งาน” และบัญชีผู้ลงประกาศจะผูกกับผู้ใช้ที่เข้าสู่ระบบ
