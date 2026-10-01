@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { SiteShell } from "@/components/layout/SiteShell";
 import styles from "./page.module.css";
 
 export default function CreateListingPage() {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [type, setType] = useState<"SALE" | "ADOPTION">("SALE");
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,11 +108,14 @@ export default function CreateListingPage() {
           </span>
 
           <h1>สร้างประกาศสัตว์เลี้ยง</h1>
-
-          <p>กรอกข้อมูลน้องให้ครบถ้วนก่อนลงประกาศ</p>
+          <p>กรอกข้อมูลน้องก่อนลงประกาศ</p>
         </header>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit}
+          aria-busy={isSubmitting}
+        >
           <section className={styles.section}>
             <h2>ประเภทประกาศ</h2>
 
@@ -170,6 +176,7 @@ export default function CreateListingPage() {
               ราคา (บาท)
 
               <input
+                key={type}
                 name="price"
                 type="number"
                 min="0"
@@ -185,33 +192,85 @@ export default function CreateListingPage() {
             </label>
 
             <label className={styles.field}>
-              รายละเอียด
-
+              รายละเอียด (ไม่บังคับ)
               <textarea
                 name="description"
                 rows={6}
                 placeholder="อธิบายรายละเอียดของสัตว์เลี้ยง"
-                required
               />
             </label>
           </section>
 
           <section className={styles.section}>
             <h2>รูปภาพสัตว์เลี้ยง</h2>
-                <label className={styles.field}>
-                    เลือกรูปภาพ
-                    <input
-                        name="mediaFiles"
-                        type="file"
-                        accept="image/*"
-                        multiple
-                    />
-                    <small>เลือกได้หลายรูป</small>
-                </label>
-        </section>
+
+            <div className={styles.field}>
+              <span>เลือกรูปภาพ</span>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 12px",
+                  border: "1px solid #ded2ef",
+                  borderRadius: 8,
+                  background: "#fff",
+                }}
+              >
+                <span
+                  aria-live="polite"
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: "hidden",
+                    color: "#716b80",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {selectedFiles.length
+                    ? selectedFiles.join(", ")
+                    : "ยังไม่ได้เลือกไฟล์"}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{
+                    flexShrink: 0,
+                    padding: "8px 14px",
+                    border: 0,
+                    borderRadius: 6,
+                    color: "#fff",
+                    background: "#6840c6",
+                    cursor: "pointer",
+                  }}
+                >
+                  เพิ่มไฟล์
+                </button>
+
+                <input
+                  ref={fileInputRef}
+                  name="mediaFiles"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  hidden
+                  onChange={(event) =>
+                    setSelectedFiles(
+                      Array.from(event.target.files ?? []).map(
+                        (file) => file.name,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <small>เลือกได้หลายรูป</small>
+            </div>
+          </section>
 
           {message && (
-            <p className={styles.message} role="status">
+            <p className={styles.message} role="alert">
               {message}
             </p>
           )}
