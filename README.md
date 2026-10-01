@@ -45,6 +45,10 @@ npm install
 Create a `.env` file in the project root and configure the required environment variables.
 
 ```env
+PROJECT_NAME=
+
+APP_IMAGE_NAME=
+
 APP_PORT=
 POSTGRES_PORT=
 
@@ -55,8 +59,14 @@ POSTGRES_PASSWORD=
 POSTGRES_APP_USER=
 POSTGRES_APP_PASSWORD=
 
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
+AUTH_SECRET=
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
+AUTH_URL=
+
+NEXT_PUBLIC_APP_URL=
+
+DATABASE_URL=
 ```
 
 Replace the empty values with your local configuration.
