@@ -1,31 +1,28 @@
-import { PageFrame } from "@/components/layout/PageFrame";
-import { PetGrid } from "@/components/marketplace/PetGrid";
-import { MarketplaceCards } from "@/components/marketplace/MarketplaceCards";
 import { prisma } from "@/lib/prisma";
+import { MarketplaceBrowser } from "@/components/marketplace/MarketplaceBrowser";
+import { SiteShell } from "@/components/layout/SiteShell";
 
 export const dynamic = "force-dynamic";
+
 export default async function MarketplacePage() {
   const listings = await prisma.listing.findMany({
-    where: {
-      status: "AVAILABLE",
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+    where: { status: "AVAILABLE" },
+    orderBy: { createdAt: "desc" },
     include: {
+      user: { select: { name: true } },
       media: true,
     },
   });
 
-  return (
-    <PageFrame
-      title="ตลาดสัตว์เลี้ยง"
-      subtitle="ประกาศหาบ้านและของใช้สัตว์เลี้ยงจากคนในพื้นที่ใกล้เคียง"
-      eyebrow="ซื้อและหาบ้าน"
-    >
-      <MarketplaceCards />
+  const serializableListings = listings.map((listing) => ({
+    ...listing,
+    price: listing.price === null ? null : Number(listing.price),
+    createdAt: listing.createdAt.toISOString(),
+  }));
 
-      <PetGrid items={listings} />
-    </PageFrame>
+  return (
+    <SiteShell>
+      <MarketplaceBrowser listings={serializableListings} />
+    </SiteShell>
   );
 }

@@ -18,6 +18,19 @@ type Place = {
   lon: number;
 };
 
+type OverpassElement = {
+  id: number;
+  lat?: number;
+  lon?: number;
+  center?: { lat?: number; lon?: number };
+  tags?: {
+    name?: string;
+    amenity?: string;
+    shop?: string;
+    leisure?: string;
+  };
+};
+
 const position: [number, number] = [18.7883, 98.9853];
 
 const filters: { id: Filter; label: string; icon: string }[] = [
@@ -40,6 +53,43 @@ const placeIcon = L.icon({
   popupAnchor: [1, -34],
 });
 
+function toPlace(element: OverpassElement): Place | null {
+  const lat = element.lat ?? element.center?.lat;
+  const lon = element.lon ?? element.center?.lon;
+
+  if (
+    typeof lat !== "number" ||
+    typeof lon !== "number" ||
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lon)
+  ) {
+    return null;
+  }
+
+  let category: PlaceCategory = "shop";
+  let type = "ร้านขายอาหารและอุปกรณ์สัตว์เลี้ยง";
+
+  if (element.tags?.amenity === "veterinary") {
+    category = "clinic";
+    type = "คลินิก / โรงพยาบาลสัตว์";
+  } else if (element.tags?.shop === "pet_grooming") {
+    category = "grooming";
+    type = "ร้านอาบน้ำ / ตัดขน";
+  } else if (element.tags?.leisure === "dog_park") {
+    category = "park";
+    type = "สวนสำหรับสุนัข";
+  }
+
+  return {
+    id: element.id,
+    name: element.tags?.name || "ไม่ระบุชื่อ",
+    type,
+    category,
+    lat,
+    lon,
+  };
+}
+
 export default function PetMap() {
   const [places, setPlaces] = useState<Place[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
@@ -47,68 +97,42 @@ export default function PetMap() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const query = `
-      [out:json];
-      (
-        node["amenity"="veterinary"](around:5000,18.7883,98.9853);
-        way["amenity"="veterinary"](around:5000,18.7883,98.9853);
-        node["shop"="pet"](around:5000,18.7883,98.9853);
-        way["shop"="pet"](around:5000,18.7883,98.9853);
-        node["shop"="pet_grooming"](around:5000,18.7883,98.9853);
-        way["shop"="pet_grooming"](around:5000,18.7883,98.9853);
-        node["leisure"="dog_park"](around:5000,18.7883,98.9853);
-        way["leisure"="dog_park"](around:5000,18.7883,98.9853);
-      );
-      out center;
-    `;
+    const controller = new AbortController();
 
-    fetch("https://overpass-api.de/api/interpreter", {
-      method: "POST",
-      body: new URLSearchParams({ data: query }),
-    })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("โหลดข้อมูลสถานที่ไม่สำเร็จ");
-        return response.json();
-      })
-      .then((data) => {
-        const results: Place[] = (data.elements ?? [])
-          .map((element: any): Place | null => {
-            const lat = element.lat ?? element.center?.lat;
-            const lon = element.lon ?? element.center?.lon;
-            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    async function loadPlaces() {
+      try {
+        const response = await fetch("/api/places", {
+          signal: controller.signal,
+        });
 
-            let category: PlaceCategory = "shop";
-            let type = "ร้านขายอาหารและอุปกรณ์สัตว์เลี้ยง";
+        if (!response.ok) {
+          throw new Error(`โหลดสถานที่ไม่สำเร็จ (${response.status})`);
+        }
 
-            if (element.tags?.amenity === "veterinary") {
-              category = "clinic";
-              type = "คลินิก / โรงพยาบาลสัตว์";
-            } else if (element.tags?.shop === "pet_grooming") {
-              category = "grooming";
-              type = "ร้านอาบน้ำ / ตัดขน";
-            } else if (element.tags?.leisure === "dog_park") {
-              category = "park";
-              type = "สวนสำหรับสุนัข";
-            }
-
-            return {
-              id: element.id,
-              name: element.tags?.name || "ไม่ระบุชื่อ",
-              type,
-              category,
-              lat,
-              lon,
-            };
-          })
-          .filter((place: Place | null): place is Place => place !== null);
+        const data: { elements?: OverpassElement[] } = await response.json();
+        const results = (data.elements ?? [])
+          .map(toPlace)
+          .filter((place): place is Place => place !== null);
 
         setPlaces(results);
-      })
-      .catch((loadError: unknown) => {
+        setError("");
+      } catch (loadError) {
+        if (loadError instanceof Error && loadError.name === "AbortError") {
+          return;
+        }
+
         console.error("Failed to load pet facilities:", loadError);
         setError("โหลดสถานที่ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง");
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadPlaces();
+
+    return () => controller.abort();
   }, []);
 
   const visiblePlaces = useMemo(
@@ -176,11 +200,16 @@ export default function PetMap() {
       </div>
 
       {error ? (
-        <p className={styles.empty} role="alert">{error}</p>
+        <p className={styles.empty} role="alert">
+          {error}
+        </p>
       ) : visiblePlaces.length > 0 ? (
         <ul className={styles.placeList}>
           {visiblePlaces.map((place) => (
-            <li className={styles.placeCard} key={`${place.category}-${place.id}`}>
+            <li
+              className={styles.placeCard}
+              key={`${place.category}-${place.id}`}
+            >
               <span className={styles.placeIcon} aria-hidden="true">
                 {filters.find((item) => item.id === place.category)?.icon}
               </span>
