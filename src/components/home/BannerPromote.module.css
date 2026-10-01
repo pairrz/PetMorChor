@@ -1,0 +1,179 @@
+.banner {
+  position: relative;
+  display: flex;
+  width: min(1200px, calc(100% - 48px));
+  min-height: 300px;
+  box-sizing: border-box;
+  align-items: center;
+  margin: 24px auto;
+  padding: 40px 72px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: linear-gradient(110deg, #f8f6f1, #fff 68%, #fff0d2);
+}
+
+.banner::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 10px;
+  background: linear-gradient(90deg, #247447, #39a962 55%, #ffd33f);
+  content: "";
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  animation: enter 350ms ease both;
+}
+
+.brand {
+  color: #34774a;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 16px 0 8px;
+  color: #f5b000;
+  font-size: clamp(38px, 6vw, 76px);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  text-shadow: 4px 5px 0 #d2cec5;
+}
+
+.description {
+  margin: 14px 0 0;
+  color: #66645e;
+  font-size: 14px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  color: #287349;
+  font-size: 14px;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.decoration {
+  position: absolute;
+  right: 12%;
+  color: #49365d;
+  font-size: clamp(100px, 17vw, 190px);
+  transform: rotate(-15deg);
+  user-select: none;
+}
+
+.arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: rgb(60 60 60 / 42%);
+  cursor: pointer;
+  font-size: 30px;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.arrow:hover {
+  background: rgb(40 40 40 / 70%);
+}
+
+.previous {
+  left: 16px;
+}
+
+.next {
+  right: 16px;
+}
+
+.dots {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 18px;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #c8c3b9;
+  cursor: pointer;
+}
+
+.activeDot {
+  width: 22px;
+  background: #368451;
+}
+
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .banner {
+    width: calc(100% - 32px);
+    min-height: 250px;
+    margin: 16px auto;
+    padding: 36px 48px;
+  }
+
+  .title {
+    font-size: clamp(34px, 9vw, 52px);
+  }
+
+  .description {
+    max-width: 85%;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+
+  .decoration {
+    right: -10px;
+    bottom: 24px;
+    font-size: 90px;
+    opacity: 0.55;
+  }
+
+  .previous {
+    left: 8px;
+  }
+
+  .next {
+    right: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content {
+    animation: none;
+  }
+}

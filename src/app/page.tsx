@@ -8,6 +8,8 @@ import { PetGrid } from "@/components/marketplace/PetGrid";
 import { PostCards } from "@/components/community/PostCards";
 import { ServiceCards } from "@/components/discover/ServiceCards";
 import { ArticleCards } from "@/components/information/ArticleCards";
+import { BannerPromote } from "@/components/home/BannerPromote";
+import { CommunityPromo } from "@/components/home/PromoContest";
 
 export const dynamic = "force-dynamic";
 
@@ -41,64 +43,12 @@ export default async function Home() {
 
   return (
     <SiteShell>
+      <BannerPromote />
       <Hero />
+      <CommunityPromo />
 
-      {/* สัตว์เลี้ยงใกล้คุณ */}
-      <section className="section">
-        <SectionTitle
-          title="สัตว์เลี้ยงใกล้คุณ"
-          subtitle="น้อง ๆ และประกาศจากรอบมหาวิทยาลัย"
-          href="/marketplace"
-        />
-        {/* ส่งข้อมูลจริงจาก Database ไปแสดงผล */}
-        <PetGrid items={listings} />
-      </section>
-
-      {/* แถบแจ้งเตือนชุมชน */}
-      <section className="community-strip">
-        <div>
-          <SectionTitle
-            title="มีอะไรเกิดขึ้นแถวนี้บ้าง?"
-            subtitle="ถามเรื่องสัตว์หาย แชร์ข่าวสาร หรือช่วยน้อง ๆ ให้เจอบ้านที่อบอุ่น"
-            href="/community"
-          />
-        </div>
-
-        {/* Visitor กดได้ แต่จะโดน Middleware ดัก Redirect ไปหน้า Login */}
-        <Link className="dark-cta" href="/create">
-          สร้างโพสต์ →
-        </Link>
-      </section>
-
-      {/* ชุมชนรอบ มช. */}
-      <section className="section">
-        <SectionTitle
-          title="ชุมชนรอบมหาวิทยาลัย"
-          subtitle="เรื่องราวและผู้คนในพื้นที่ใกล้เคียง"
-          href="/community"
-        />
-        <PostCards items={posts} />
-      </section>
-
-      {/* บริการ/คลินิกใกล้ฉัน */}
-      <section className="section">
-        <SectionTitle
-          title="บริการใกล้ฉัน"
-          subtitle="สถานที่ดูแลสัตว์เลี้ยงใกล้มหาวิทยาลัย"
-          href="/discover"
-        />
-        <ServiceCards items={places} />
-      </section>
-
-      {/* บทความเกร็ดความรู้ */}
-      <section className="section">
-        <SectionTitle
-          title="ดูแลน้อง ๆ ไปด้วยกัน"
-          subtitle="เคล็ดลับสำหรับคนเลี้ยงสัตว์ในพื้นที่"
-          href="/information"
-        />
-        <ArticleCards items={articles} />
-      </section>
+      
+      
     </SiteShell>
   );
 }

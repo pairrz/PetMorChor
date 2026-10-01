@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
+
 import {
   Bell,
-  MapPin,
   Menu,
   MessageCircle,
   Search,
   X,
 } from "lucide-react";
-
+import { BannerPromote } from "@/components/home/BannerPromote";
 import { nav } from "@/lib/pet-data";
 
 export function SiteShell({
@@ -54,6 +54,9 @@ export function SiteShell({
             โปรไฟล์
           </Link>
         </div>
+        <button type="button" className="login-button">
+          <Link href="/login">เข้าสู่ระบบ</Link>
+        </button>
 
         <button
           className="mobile-menu"
@@ -75,17 +78,6 @@ export function SiteShell({
           + Post Something
         </Link>
       </nav>
-
-      <div className="location-bar">
-        <MapPin size={17} />
-
-        <div>
-          <b>พื้นที่ของคุณ</b>
-          <span>มหาวิทยาลัยและพื้นที่ใกล้เคียง</span>
-        </div>
-
-        <button>เปลี่ยนสถานที่</button>
-      </div>
 
       {children}
 

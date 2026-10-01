@@ -37,13 +37,19 @@ services:
     image: ${APP_IMAGE_NAME}
     container_name: ${PROJECT_NAME}-app
     restart: always
+    working_dir: /app
+    command: ["npm", "run", "dev", "--", "--hostname", "0.0.0.0"]
     ports:
       - "${APP_PORT}:3000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_APP_USER}:${POSTGRES_APP_PASSWORD}@${PROJECT_NAME}-db:5432/${POSTGRES_DB}
       NODE_ENV: development
       TZ: Asia/Bangkok
+      WATCHPACK_POLLING: "true"
     volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
       - ./logs:/app/logs
     networks:
       - app-net

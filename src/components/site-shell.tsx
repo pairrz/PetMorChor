@@ -77,17 +77,6 @@ export function SiteShell({
         </Link>
       </nav>
 
-      <div className="location-bar">
-        <MapPin size={17} />
-
-        <div>
-          <b>พื้นที่ของคุณ</b>
-          <span>มหาวิทยาลัยและพื้นที่ใกล้เคียง</span>
-        </div>
-
-        <button>เปลี่ยนสถานที่</button>
-      </div>
-
       {children}
 
       <footer>
