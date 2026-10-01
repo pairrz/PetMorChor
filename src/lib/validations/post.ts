@@ -8,8 +8,8 @@ export const getPostsQuerySchema = z.object({
     .min(1, "ต้องดึงอย่างน้อย 1 รายการ")
     .max(50, "ดึงได้สูงสุดไม่เกิน 50 รายการต่อครั้ง")
     .default(10),
-  // เนื่องจาก id เป็น Int จึงแปลง cursor เป็นตัวเลขจำนวนเต็ม
-  cursor: z.coerce.number().int().positive().optional(),
+  cursor: z.string().min(1).optional(),
+  category: z.enum(["GENERAL", "LOST_PET", "ADOPTION"]).optional(),
 });
 
 // ตรวจสอบ Request Body สำหรับสร้าง PostMedia
@@ -30,6 +30,7 @@ export const createPostSchema = z.object({
     .trim()
     .min(5, "รายละเอียดต้องมีความยาวอย่างน้อย 5 ตัวอักษร")
     .max(2000, "รายละเอียดต้องยาวไม่เกิน 2,000 ตัวอักษร"),
+  category: z.enum(["GENERAL", "LOST_PET", "ADOPTION"]).default("GENERAL"),
   media: z
     .array(postMediaSchema)
     .max(10, "อัปโหลดรูปภาพหรือวิดีโอได้สูงสุด 10 ไฟล์")

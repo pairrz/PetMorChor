@@ -2,9 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-
 import { SiteShell } from "@/components/layout/SiteShell";
-
 import styles from "./page.module.css";
 
 export default function CreateListingPage() {
@@ -28,10 +26,28 @@ export default function CreateListingPage() {
       const description = String(formData.get("description") ?? "").trim();
       const price = Number(formData.get("price") ?? 0);
 
-      const mediaUrls = formData
-        .getAll("mediaUrl")
-        .map((value) => String(value).trim())
-        .filter(Boolean);
+      const mediaFiles = formData
+        .getAll("mediaFiles")
+        .filter((value): value is File => value instanceof File && value.size > 0);
+
+      let mediaUrls: string[] = [];
+      if (mediaFiles.length > 0) {
+        const uploadData = new FormData();
+        mediaFiles.forEach((file) => uploadData.append("files", file));
+
+        const uploadResponse = await fetch("/api/uploads", {
+          method: "POST",
+          body: uploadData,
+        });
+        const uploadResult = await uploadResponse.json();
+
+        if (!uploadResponse.ok) {
+          setMessage(uploadResult.message ?? "อัปโหลดรูปภาพไม่สำเร็จ");
+          return;
+        }
+
+        mediaUrls = uploadResult.urls;
+      }
 
       const response = await fetch("/api/listings", {
         method: "POST",
@@ -193,11 +209,6 @@ export default function CreateListingPage() {
                     <small>เลือกได้หลายรูป</small>
                 </label>
         </section>
-
-          <p className={styles.note}>
-            สถานะประกาศเริ่มต้นเป็น “พร้อมใช้งาน”
-            และบัญชีผู้ลงประกาศจะผูกกับผู้ใช้ที่เข้าสู่ระบบ
-          </p>
 
           {message && (
             <p className={styles.message} role="status">

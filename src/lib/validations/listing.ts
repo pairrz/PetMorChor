@@ -14,6 +14,7 @@ export const createListingSchema = z.object({
   species: z.string().trim().min(1, "กรุณาระบุสายพันธุ์"),
   price: z.coerce.number().nonnegative("ราคาต้องไม่ติดลบ").default(0),
   type: z.enum(["SALE", "ADOPTION"]),
+  mediaUrls: z.array(z.string().url()).default([]),
 });
 
 // Schema สำหรับเจ้าของโพสต์กดเปลี่ยนสถานะเป็น "มีคนรับเลี้ยงแล้ว"

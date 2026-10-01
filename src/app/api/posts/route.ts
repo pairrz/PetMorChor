@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { getPostsQuerySchema, createPostSchema } from "@/lib/validations/post";
 import { getSessionUser } from "@/lib/auth-guard";
+
+interface DecodedCursor {
+  isPinned: boolean;
+  createdAt: string;
+  id: number;
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,8 +27,8 @@ export async function GET(req: NextRequest) {
     const { limit = 10, cursor, category } = parsedQuery.data;
 
     // ตรวจสอบ Session เพื่อเช็ค isLiked (Visitor จะได้ null)
-    const session = await getSession(req);
-    const currentUserId = session?.userId;
+    const session = await getSessionUser(req);
+    const currentUserId = session?.id;
 
     // 2. ถอดรหัส Composite Cursor (Base64 -> JSON)
     let decodedCursor: DecodedCursor | null = null;
@@ -39,17 +46,13 @@ export async function GET(req: NextRequest) {
     }
 
     // 3. กำหนด Where Clause สำหรับ Priority + Cursor Pagination
-    const whereCondition: any = {
+    const whereCondition: Prisma.PostWhereInput = {
       ...(category ? { category } : {}),
     };
 
     if (decodedCursor) {
       const cursorDate = new Date(decodedCursor.createdAt);
-      whereCondition.OR = [
-        // ลำดับ 1: โพสต์ธรรมดาหลังหมดกลุ่ม Pinned
-        {
-          isPinned: { lt: decodedCursor.isPinned },
-        },
+      const cursorConditions: Prisma.PostWhereInput[] = [
         // ลำดับ 2: กลุ่มความสำคัญเดียวกัน แต่เวลาเก่าวัดจาก Cursor
         {
           isPinned: decodedCursor.isPinned,
@@ -62,6 +65,13 @@ export async function GET(req: NextRequest) {
           id: { lt: decodedCursor.id },
         },
       ];
+
+      // เมื่อ cursor อยู่ท้ายกลุ่ม pinned ให้ดึงโพสต์กลุ่มปกติต่อด้วย
+      if (decodedCursor.isPinned) {
+        cursorConditions.unshift({ isPinned: false });
+      }
+
+      whereCondition.OR = cursorConditions;
     }
 
     // 4. Query ดึงโพสต์
@@ -75,7 +85,7 @@ export async function GET(req: NextRequest) {
       ],
       include: {
         user: {
-          select: { id: true, name: true, image: true },
+          select: { id: true, name: true },
         },
         media: {
           select: { id: true, mediaUrl: true, mediaType: true },
@@ -152,13 +162,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { caption, description, media } = validation.data;
+    const { caption, description, category, media } = validation.data;
 
     // 3. ใช้ Nested Write ของ Prisma เพื่อสร้าง Post และ PostMedia พร้อมกันในคราวเดียว[cite: 2]
     const newPost = await prisma.post.create({
       data: {
         caption,
         description,
+        category,
         userId: user.id,
         media: {
           create: media.map((item) => ({

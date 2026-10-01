@@ -137,6 +137,67 @@
   font-size: 14px;
 }
 
+.postFooter button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.postFooter button:hover {
+  color: #4c3a92;
+}
+
+.comments {
+  display: grid;
+  gap: 10px;
+  padding: 0 16px 16px;
+  border-top: 1px solid #eeeaf4;
+  color: #514c60;
+  font-size: 14px;
+}
+
+.comments p {
+  margin: 10px 0 0;
+}
+
+.commentForm {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.commentForm input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid #ded8e9;
+  border-radius: 8px;
+  padding: 9px 10px;
+  color: #302b42;
+}
+
+.commentForm button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0 14px;
+  background: #4c3a92;
+  color: #fff;
+  cursor: pointer;
+}
+
+.commentForm button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.error {
+  margin: 0;
+  color: #b42318;
+  font-size: 14px;
+}
+
 .empty {
   padding: 48px 20px;
   border: 1px dashed #ded8e9;

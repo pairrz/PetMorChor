@@ -8,24 +8,29 @@ import styles from "./page.module.css";
 
 export default function CreateCommunityPostPage() {
   const router = useRouter();
+
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     setError("");
     setSubmitting(true);
 
     const form = new FormData(event.currentTarget);
 
     try {
-      const response = await fetch("/api/community/posts", {
+      const response = await fetch("/api/posts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           caption: form.get("caption"),
           description: form.get("description"),
           category: form.get("category"),
+          media: [],
         }),
       });
 
@@ -36,7 +41,10 @@ export default function CreateCommunityPostPage() {
           router.push("/login");
           return;
         }
-        throw new Error(result.error || "สร้างโพสต์ไม่สำเร็จ");
+
+        throw new Error(
+          result.message || result.error || "สร้างโพสต์ไม่สำเร็จ"
+        );
       }
 
       router.push("/community");
@@ -45,7 +53,7 @@ export default function CreateCommunityPostPage() {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : "เกิดข้อผิดพลาด กรุณาลองใหม่",
+          : "เกิดข้อผิดพลาด กรุณาลองใหม่"
       );
     } finally {
       setSubmitting(false);
@@ -60,23 +68,46 @@ export default function CreateCommunityPostPage() {
         </Link>
 
         <header className={styles.heading}>
-          <span className={styles.eyebrow}>PETMORCHOR COMMUNITY</span>
+          <span className={styles.eyebrow}>
+            PETMORCHOR COMMUNITY
+          </span>
+
           <h1>สร้างโพสต์</h1>
-          <p>แบ่งปันเรื่องราวกับชุมชนคนรักสัตว์</p>
+
+          <p>
+            แบ่งปันเรื่องราวกับชุมชนคนรักสัตว์
+          </p>
         </header>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form
+          className={styles.form}
+          onSubmit={handleSubmit}
+        >
           <label className={styles.field}>
             หมวดหมู่
-            <select name="category" defaultValue="GENERAL" required>
-              <option value="GENERAL">ชุมชนทั่วไป</option>
-              <option value="LOST_PET">สัตว์เลี้ยงหาย</option>
-              <option value="ADOPTION">หาบ้าน / รับเลี้ยง</option>
+
+            <select
+              name="category"
+              defaultValue="GENERAL"
+              required
+            >
+              <option value="GENERAL">
+                ชุมชนทั่วไป
+              </option>
+
+              <option value="LOST_PET">
+                สัตว์เลี้ยงหาย
+              </option>
+
+              <option value="ADOPTION">
+                หาบ้าน / รับเลี้ยง
+              </option>
             </select>
           </label>
 
           <label className={styles.field}>
             หัวข้อ
+
             <input
               name="caption"
               type="text"
@@ -88,6 +119,7 @@ export default function CreateCommunityPostPage() {
 
           <label className={styles.field}>
             รายละเอียด
+
             <textarea
               name="description"
               rows={8}
@@ -96,9 +128,20 @@ export default function CreateCommunityPostPage() {
             />
           </label>
 
-          {error && <p className={styles.error} role="alert">{error}</p>}
+          {error && (
+            <p
+              className={styles.error}
+              role="alert"
+            >
+              {error}
+            </p>
+          )}
 
-          <button className={styles.submit} type="submit" disabled={submitting}>
+          <button
+            className={styles.submit}
+            type="submit"
+            disabled={submitting}
+          >
             {submitting ? "กำลังโพสต์..." : "โพสต์"}
           </button>
         </form>
