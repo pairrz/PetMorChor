@@ -1,30 +1,32 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
-import { CreatePostInput } from "@/lib/validations/post";
+// src/hooks/usePosts.ts
+"use client";
 
-export function usePosts(type?: string) {
-  return useQuery({
-    queryKey: ["posts", type],
-    queryFn: async () => {
-      const res = await axios.get(`/api/posts${type ? `?type=${type}` : ""}`);
-      return res.data;
-    },
-    staleTime: 1000 * 60 * 2, // แคชข้อมูลไว้ 2 นาที ไม่ต้องยิงใหม่ทุกครั้งที่กดสลับหน้า
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchFeedPosts, toggleLikePost, PostsResponse } from "@/lib/api/posts";
+
+export const POSTS_QUERY_KEY = ["posts", "feed"];
+
+export function usePosts(category?: string) {
+  return useInfiniteQuery({
+    queryKey: [...POSTS_QUERY_KEY, category],
+    queryFn: ({ pageParam }) =>
+      fetchFeedPosts({ cursor: pageParam, category }),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage: PostsResponse) => lastPage.pagination.nextCursor ?? undefined,
+    staleTime: 1000 * 60 * 2, // 2 นาที
     gcTime: 1000 * 60 * 10,
   });
 }
 
-export function useCreatePost() {
+// Hook สำหรับกด Like พร้อม Optimistic Updates (ให้ UI ตอบสนองทันทีแบบ SPA)
+export function useLikePost() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (newPost: CreatePostInput) => {
-      const res = await axios.post("/api/posts", newPost);
-      return res.data;
-    },
+    mutationFn: (postId: number) => toggleLikePost(postId),
     onSuccess: () => {
-      // Invalidate cache เพื่อให้หน้า Feed อัปเดตข้อมูลใหม่อัตโนมัติ[cite: 1, 8]
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      // Invalidate cache เพื่อ sync ตัวเลขยอด like ล่าสุด
+      queryClient.invalidateQueries({ queryKey: POSTS_QUERY_KEY });
     },
   });
 }
