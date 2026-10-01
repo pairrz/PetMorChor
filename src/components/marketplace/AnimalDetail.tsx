@@ -3,33 +3,45 @@ import { MapPin } from "lucide-react";
 
 import { Eyebrow } from "@/components/layout/Eyebrow";
 
-export function AnimalDetail({ pet }: { pet: any }) {
+type ListingDetail = {
+  title: string;
+  description: string;
+  species: string;
+  price: string | number;
+  type: string;
+  status: string;
+  createdAt: string;
+  user: { name: string };
+  media: { mediaUrl: string; mediaType: string }[];
+};
+
+export function AnimalDetail({ listing }: { listing: ListingDetail }) {
+  const image = listing.media[0]?.mediaUrl;
+  const isAdoption = listing.type === "ADOPTION";
+
   return (
     <div className="animal-detail">
       <img
         className="detail-image"
-        src={pet.image}
-        alt={`${pet.name}, ${pet.breed}`}
+        src={image ?? "/placeholder.jpg"}
+        alt={listing.title}
       />
 
       <div>
-        <Eyebrow>{pet.status} · NEARBY</Eyebrow>
+        <Eyebrow>{isAdoption ? "ADOPTION" : "FOR SALE"} · {listing.status}</Eyebrow>
 
-        <h1>{pet.name}</h1>
+        <h1>{listing.title}</h1>
 
         <p className="lead">
-          {pet.breed} · {pet.age}
+          {listing.species} · {isAdoption ? "หาบ้าน" : `${Number(listing.price).toLocaleString("th-TH")} บาท`}
         </p>
 
         <p className="location-pill">
           <MapPin size={14} />
-          {pet.place} · {pet.distance}
+          ประกาศโดย {listing.user.name}
         </p>
 
-        <p>
-          Mochi is a gentle companion who loves sunny windows and quiet
-          afternoons. Looking for a caring home close to campus.
-        </p>
+        <p>{listing.description}</p>
 
         <div className="hero-actions">
           <Link className="primary-cta" href="/chat">
@@ -44,7 +56,7 @@ export function AnimalDetail({ pet }: { pet: any }) {
         <div className="trust-box">
           ✓ Campus community member
           <br />
-          Nearby · Member since 2026
+          ประกาศเมื่อ {new Date(listing.createdAt).toLocaleDateString("th-TH")}
         </div>
       </div>
     </div>

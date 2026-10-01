@@ -2,11 +2,18 @@
 import Link from "next/link";
 import { Heart, MapPin } from "lucide-react";
 
-export function PetCard({ pet }: { pet: any }) {
-  const image =
-    pet.media?.[0]?.url ||
-    pet.media?.[0]?.path ||
-    "/placeholder-pet.jpg";
+type ListingCard = {
+  id: number;
+  title: string;
+  species: string;
+  type: string;
+  price: string | number | null;
+  userId: number;
+  media?: { mediaUrl: string }[];
+};
+
+export function PetCard({ pet }: { pet: ListingCard }) {
+  const image = pet.media?.[0]?.mediaUrl || "/placeholder.jpg";
 
   const isAdoption =
     pet.type?.toUpperCase() === "ADOPTION";
