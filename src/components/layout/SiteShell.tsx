@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Bell,
@@ -56,14 +57,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     setLogoutError("");
 
     try {
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("ออกจากระบบไม่สำเร็จ");
-      }
+      await signOut({ redirect: false });
 
       queryClient.setQueryData(["auth", "me"], null);
       setOpen(false);

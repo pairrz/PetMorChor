@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password"; // ฟังก์ชัน bcrypt.hash(password, 10) ที่ทำไว้
-import { createSessionAndSetCookie } from "@/lib/session";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -28,16 +27,13 @@ export async function POST(req: NextRequest) {
     // เข้ารหัสด้วย bcrypt (Cost Factor 10)
     const hashedPassword = await hashPassword(password);
 
-    const user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         name,
         email,
         password: hashedPassword,
       },
     });
-
-    // สมัครเสร็จแล้วให้ล็อกอินอัตโนมัติ
-    await createSessionAndSetCookie(user.id);
 
     return NextResponse.json({ success: true, message: "สมัครสมาชิกสำเร็จ" }, { status: 201 });
   } catch (error) {

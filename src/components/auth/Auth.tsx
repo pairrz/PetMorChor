@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export function Auth({
   register = false,
@@ -30,34 +31,28 @@ export function Auth({
     setLoading(true);
 
     try {
-      const response = await fetch(
-        register ? "/api/auth/register" : "/api/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(
-            register
-              ? {
-                  name,
-                  email,
-                  password,
-                }
-              : {
-                  email,
-                  password,
-                }
-          ),
-        }
-      );
+      const response = register
+        ? await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, email, password }),
+          })
+        : null;
 
-      const data = await response.json();
+      if (response && !response.ok) {
+        const data = await response.json();
+        setError(data.message || "เกิดข้อผิดพลาด กรุณาลองใหม่");
+        return;
+      }
 
-      if (!response.ok) {
-        setError(
-          data.message || "เกิดข้อผิดพลาด กรุณาลองใหม่"
-        );
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (!result?.ok) {
+        setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
         return;
       }
 

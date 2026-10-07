@@ -21,21 +21,18 @@ export default function LoginPage() {
     setIsPending(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
       });
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
+      if (result?.ok) {
         await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
         router.push("/");
         router.refresh();
       } else {
-        setErrorMsg(data.message || "อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+        setErrorMsg("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
       }
     } catch {
       setErrorMsg("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");

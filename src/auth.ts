@@ -1,18 +1,50 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
-import { nanoid } from "nanoid";
-
-const SESSION_DURATION_DAYS = 7;
+import { comparePassword } from "@/lib/password";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [Google],
+  session: {
+    strategy: "jwt",
+    maxAge: 7 * 24 * 60 * 60,
+  },
+  providers: [
+    Google,
+    Credentials({
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        const email = credentials?.email;
+        const password = credentials?.password;
+
+        if (typeof email !== "string" || typeof password !== "string") {
+          return null;
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (!user?.password || !(await comparePassword(password, user.password))) {
+          return null;
+        }
+
+        return {
+          id: String(user.id),
+          name: user.name,
+          email: user.email,
+        };
+      },
+    }),
+  ],
 
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === "google" && user.email) {
-        // 1. สร้างหรือหา User ใน Prisma
-        const dbUser = await prisma.user.upsert({
+        await prisma.user.upsert({
           where: {
             email: user.email,
           },
@@ -28,25 +60,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             role: "USER",
           },
         });
-
-        // 2. สร้าง custom Session
-        const sessionToken = nanoid(32);
-
-        const expires = new Date();
-        expires.setDate(
-          expires.getDate() + SESSION_DURATION_DAYS
-        );
-
-        await prisma.session.create({
-          data: {
-            sessionToken,
-            userId: dbUser.id,
-            expires,
-          },
-        });
-
-        console.log("Google DB user:", dbUser);
-        console.log("Custom session created:", sessionToken);
       }
 
       return true;

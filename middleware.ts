@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { auth } from "@/auth";
 
-export function middleware(req: NextRequest) {
+export default auth((req) => {
   const { pathname } = req.nextUrl;
   const method = req.method;
-
-  // 1. ตรวจสอบการมีอยู่ของ Stateful Session Cookie (HttpOnly)
-  const sessionToken = req.cookies.get("session_token")?.value;
 
   // 2. ข้ามการตรวจสอบสำหรับ Assets, Static files, Next.js Internal และระบบ Authentication
   if (
@@ -44,7 +41,7 @@ export function middleware(req: NextRequest) {
   }
 
   // 4. กรณีที่ไม่มี Session (เป็น Visitor หรือ Session หลุด) แล้วพยายามทำ Mutation หรือเข้าโซนปิด
-  if (!sessionToken) {
+  if (!req.auth) {
     // 4.1 ถ้าเป็นคำขอฝั่ง API -> ตอบกลับ 401 Unauthorized พร้อม JSON Error
     if (pathname.startsWith("/api/")) {
       return NextResponse.json(
@@ -62,9 +59,9 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // 5. หากมี Session Token อนุญาตให้คำขอทำงานต่อไป
+  // 5. หากมี Auth.js session อนุญาตให้คำขอทำงานต่อไป
   return NextResponse.next();
-}
+});
 
 // ระบุเส้นทางทั้งหมดที่ต้องการให้ Middleware ทำงานตรวจสอบ
 export const config = {
@@ -79,3 +76,5 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
+
+export const runtime = "nodejs";
