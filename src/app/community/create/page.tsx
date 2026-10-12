@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SiteShell } from "@/components/layout/SiteShell";
@@ -8,8 +8,10 @@ import styles from "./page.module.css";
 
 export default function CreateCommunityPostPage() {
   const router = useRouter();
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -21,12 +23,7 @@ export default function CreateCommunityPostPage() {
     try {
       const response = await fetch("/api/community/posts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          caption: form.get("caption"),
-          description: form.get("description"),
-          category: form.get("category"),
-        }),
+        body: form,
       });
 
       const result = await response.json();
@@ -91,9 +88,51 @@ export default function CreateCommunityPostPage() {
             <textarea
               name="description"
               rows={8}
+              minLength={5}
               placeholder="เล่าเรื่องราวหรือรายละเอียดที่ต้องการแบ่งปัน"
+              required
             />
           </label>
+
+          <div className={styles.attachment} aria-label="พื้นที่แนบรูปภาพ">
+            <span className={styles.attachmentIcon} aria-hidden="true">
+              🖼️
+            </span>
+            <div>
+              <strong>แนบรูปภาพ</strong>
+              <p>เลือกรูปภาพจากอุปกรณ์ของคุณ</p>
+            </div>
+            <input
+              ref={imageInputRef}
+              className={styles.fileInput}
+              type="file"
+              name="images"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              multiple
+              aria-label="เลือกไฟล์รูปภาพ"
+              onChange={(event) =>
+                setSelectedImages(Array.from(event.currentTarget.files ?? []))
+              }
+            />
+            <button
+              className={styles.attachmentButton}
+              type="button"
+              disabled={submitting}
+              onClick={() => imageInputRef.current?.click()}
+            >
+              <span aria-hidden="true">＋</span>
+              เพิ่มรูปภาพ
+            </button>
+          </div>
+          {selectedImages.length > 0 && (
+            <ul className={styles.selectedImages} aria-live="polite">
+              {selectedImages.map((image) => (
+                <li key={`${image.name}-${image.lastModified}`}>
+                  {image.name}
+                </li>
+              ))}
+            </ul>
+          )}
 
           {error && <p className={styles.error} role="alert">{error}</p>}
 

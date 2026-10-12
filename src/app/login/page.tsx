@@ -181,6 +181,19 @@ export default function LoginPage() {
             เข้าสู่ระบบด้วย Google
           </button>
 
+          <button
+            type="button"
+            className="mt-3 flex w-full items-center justify-center gap-3 rounded-xl border border-violet-200 bg-white px-4 py-3 font-semibold text-violet-800 transition hover:bg-violet-50"
+          >
+            <span
+              aria-hidden="true"
+              className="grid h-5 w-5 place-items-center rounded bg-violet-800 text-[9px] font-extrabold text-white"
+            >
+              CMU
+            </span>
+            เข้าสู่ระบบด้วย CMU Account
+          </button>
+
           <p className="mt-8 text-center text-sm text-slate-500">
             ยังไม่มีบัญชี?{" "}
             <Link href="/register" className="font-bold text-violet-700 hover:underline">
