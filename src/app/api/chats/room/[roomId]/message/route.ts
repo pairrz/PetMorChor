@@ -3,116 +3,111 @@ import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/auth-guard";
 import { z } from "zod";
 
+const querySchema = z.object({
+  cursor: z.string().optional(), // id ของข้อความสุดท้ายที่ฝั่ง client มีอยู่
+  limit: z.coerce.number().int().min(1).max(100).default(30),
+});
+
 interface RouteParams {
   params: Promise<{ roomId: string }>;
 }
 
-const sendMessageSchema = z.object({
-  content: z.string().trim().min(1, "ข้อความต้องไม่ว่างเปล่า").max(1000),
-});
-
-// GET /api/chats/rooms/[roomId]/messages - ดึงประวัติข้อความในห้องแชท
+// GET /api/chats/rooms/[roomId]/messages?limit=30&cursor=cm...
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const user = await getSessionUser(req);
     if (!user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const { roomId: rawRoomId } = await params;
-    const roomId = parseInt(rawRoomId, 10);
-    if (isNaN(roomId)) {
-      return NextResponse.json({ success: false, message: "Invalid Room ID" }, { status: 400 });
-    }
+    const { roomId } = await params;
 
-    // ตรวจสอบสิทธิ์ว่าผู้ใช้เป็นสมาชิกของห้องแชทนี้จริงหรือไม่[cite: 7, 9]
-    const isMember = await prisma.chatParticipant.findUnique({
-      where: { roomId_userId: { roomId, userId: user.id } },
+    // 1. ตรวจสอบสิทธิ์ว่า user นี้เป็น participant ของห้องนี้จริงหรือไม่
+    const isMember = await prisma.chatParticipant.findFirst({
+      where: {
+        chatRoomId: roomId,
+        userId: user.id,
+      },
+      select: { id: true },
     });
 
     if (!isMember) {
       return NextResponse.json(
-        { success: false, message: "คุณไม่มีสิทธิ์เข้าถึงห้องสนทนานี้" },
+        { success: false, message: "Forbidden: คุณไม่มีสิทธิ์เข้าถึงห้องแชทนี้" },
         { status: 403 }
       );
     }
 
-    const messages = await prisma.message.findMany({
-      where: { roomId },
-      orderBy: { createdAt: "asc" },
-      include: {
-        sender: { select: { id: true, name: true } },
-      },
+    // 2. Parse query parameters
+    const { searchParams } = new URL(req.url);
+    const queryValidation = querySchema.safeParse({
+      cursor: searchParams.get("cursor") ?? undefined,
+      limit: searchParams.get("limit") ?? undefined,
     });
 
-    return NextResponse.json({ success: true, data: messages }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
-  }
-}
-
-// POST /api/chats/rooms/[roomId]/messages - ส่งข้อความใหม่ในห้องแชท
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  try {
-    const user = await getSessionUser(req);
-    if (!user) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
-    }
-
-    const { roomId: rawRoomId } = await params;
-    const roomId = parseInt(rawRoomId, 10);
-    if (isNaN(roomId)) {
-      return NextResponse.json({ success: false, message: "Invalid Room ID" }, { status: 400 });
-    }
-
-    // 1. Data Validation[cite: 1]
-    const body = await req.json();
-    const validation = sendMessageSchema.safeParse(body);
-    if (!validation.success) {
+    if (!queryValidation.success) {
       return NextResponse.json(
-        { success: false, errors: validation.error.flatten().fieldErrors },
+        { success: false, errors: queryValidation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
-    // 2. ตรวจสอบสิทธิ์ห้องสนทนา[cite: 7, 9]
-    const isMember = await prisma.chatParticipant.findUnique({
-      where: { roomId_userId: { roomId, userId: user.id } },
+    const { cursor, limit } = queryValidation.data;
+
+    // 3. ดึงข้อความย้อนหลังจากใหม่ไปเก่า (desc)
+    const messages = await prisma.message.findMany({
+      where: {
+        chatRoomId: roomId,
+      },
+      take: limit + 1, // ดึงเกิน 1 ข้อความเพื่อเช็คว่ามีหน้าถัดไป (hasMore) หรือไม่
+      ...(cursor && {
+        cursor: { id: cursor },
+        skip: 1, // ข้าม id ตัวที่เป็น cursor
+      }),
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
     });
 
-    if (!isMember) {
-      return NextResponse.json(
-        { success: false, message: "คุณไม่มีสิทธิ์ส่งข้อความในห้องนี้" },
-        { status: 403 }
-      );
+    // 4. ตรวจสอบ hasMore และหา nextCursor
+    const hasMore = messages.length > limit;
+    if (hasMore) {
+      messages.pop(); // ตัดไอเทมที่เกินออกมา
     }
 
-    // 3. บันทึกข้อความ และอัปเดต updatedAt ของห้องแชทผ่าน Transaction[cite: 9]
-    const message = await prisma.$transaction(async (tx) => {
-      const newMsg = await tx.message.create({
-        data: {
-          roomId,
-          senderId: user.id,
-          content: validation.data.content,
+    const nextCursor = hasMore ? messages[messages.length - 1]?.id : null;
+
+    // 5. สลับลำดับกลับเป็นเก่าไปใหม่ (asc) เพื่อให้ Client render จากบนลงล่างได้ทันที
+    const chronologicalMessages = [...messages].reverse();
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: chronologicalMessages,
+        pagination: {
+          hasMore,
+          nextCursor,
         },
-        include: {
-          sender: { select: { id: true, name: true } },
-        },
-      });
-
-      await tx.chatRoom.update({
-        where: { id: roomId },
-        data: { updatedAt: new Date() },
-      });
-
-      return newMsg;
-    });
-
-    // (หมายเหตุ: จุดนี้สามารถส่งสัญญาณ Real-time ต่อไปยัง Socket.io Server หรือ Broadcast ผ่าน Redis ได้)[cite: 8, 9]
-
-    return NextResponse.json({ success: true, data: message }, { status: 201 });
+      },
+      { status: 200 }
+    );
   } catch (error) {
-    console.error("POST message error:", error);
-    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+    console.error("GET /api/chats/rooms/[roomId]/messages error:", error);
+    return NextResponse.json(
+      { success: false, message: "Server error" },
+      { status: 500 }
+    );
   }
 }

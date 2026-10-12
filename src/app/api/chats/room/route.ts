@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
         },
         messages: {
           take: 1,
-          orderBy: { createdAt: "desc" }, // แสดงข้อความล่าสุดในกล่อง Inbox
+          orderBy: { createdAt: "desc" }, // แสดงข้อความล่าสุดใน Inbox
         },
       },
       orderBy: { updatedAt: "desc" },
@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: rooms }, { status: 200 });
   } catch (error) {
+    console.error("GET /api/chats/rooms error:", error);
     return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   }
 }
@@ -88,25 +89,45 @@ export async function POST(req: NextRequest) {
         ],
       },
       include: {
+        listing: {
+          select: { id: true, title: true, status: true, media: { take: 1 } },
+        },
         participants: {
           include: { user: { select: { id: true, name: true } } },
         },
       },
     });
 
-    // หากยังไม่เคยมี ให้สร้างห้องใหม่พร้อมใส่ผู้ซื้อและผู้ขายเข้าเป็น Participant
-    if (!room) {
+    if (room) {
+      // [จุดที่ปรับ]: มีห้องเดิมอยู่แล้ว ให้อัปเดต updatedAt เพื่อดันห้องขึ้นบนสุดของ Inbox
+      room = await prisma.chatRoom.update({
+        where: { id: room.id },
+        data: { updatedAt: new Date() },
+        include: {
+          listing: {
+            select: { id: true, title: true, status: true, media: { take: 1 } },
+          },
+          participants: {
+            include: { user: { select: { id: true, name: true } } },
+          },
+        },
+      });
+    } else {
+      // หากยังไม่เคยมี ให้สร้างห้องใหม่
       room = await prisma.chatRoom.create({
         data: {
           listingId: listing.id,
           participants: {
             create: [
-              { userId: user.id },          // ผู้สนใจ/ผู้รับเลี้ยง
-              { userId: listing.userId },   // เจ้าของสัตว์เลี้ยง
+              { userId: user.id },        // ผู้ซื้อ / ผู้สนใจ
+              { userId: listing.userId }, // เจ้าของประกาศ
             ],
           },
         },
         include: {
+          listing: {
+            select: { id: true, title: true, status: true, media: { take: 1 } },
+          },
           participants: {
             include: { user: { select: { id: true, name: true } } },
           },
