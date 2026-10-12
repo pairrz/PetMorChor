@@ -88,6 +88,10 @@ model ListingMedia {
   id        Int      @id @default(autoincrement())
   listingId Int
   mediaUrl  String
+  publicId  String?  @unique
+  width     Int?
+  height    Int?
+  order     Int      @default(0)
   createdAt DateTime @default(now())
 
   listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
@@ -168,11 +172,16 @@ model Post {
 model PostMedia {
   id        Int      @id @default(autoincrement())
   postId    Int
-  mediaUrl  String
+  mediaUrl  String   // เก็บ secure_url จาก Cloudinary
   mediaType String   // "IMAGE" หรือ "VIDEO"
+  publicId  String?  @unique
+  width     Int?
+  height    Int?
+  order     Int      @default(0)
   createdAt DateTime @default(now())
 
   post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   @@index([postId])
 }
 

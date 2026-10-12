@@ -44,6 +44,21 @@ export default function LoginPage() {
     const handleGoogleLogin = () => {
       signIn("google", { callbackUrl: "/" });
     };
+
+    const handleCpeOauthLogin = () => {
+    const clientId = process.env.NEXT_PUBLIC_CPE_CLIENT_ID || "YOUR_CLIENT_ID";
+    const redirectUri = "http://localhost:3000/api/auth/callback";
+    const scope = "openid profile email basic_info";
+
+    const authUrl = `https://oauth497.cpecmu.com/application/o/authorize/?client_id=${encodeURIComponent(
+      clientId
+    )}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&response_type=code&scope=${encodeURIComponent(scope)}`;
+
+    window.location.href = authUrl;
+  };
+
   return (
     <section className="px-4 py-12 sm:py-16">
       <div className="mx-auto grid w-full max-w-5xl overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-xl shadow-violet-950/5 md:grid-cols-2">
@@ -180,6 +195,8 @@ export default function LoginPage() {
 
           <button
             type="button"
+            onClick={handleCpeOauthLogin}
+            disabled={isPending}
             className="mt-3 flex w-full items-center justify-center gap-3 rounded-xl border border-violet-200 bg-white px-4 py-3 font-semibold text-violet-800 transition hover:bg-violet-50"
           >
             <span

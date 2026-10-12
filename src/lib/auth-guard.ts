@@ -9,27 +9,55 @@ export interface AuthenticatedUser {
   role: "USER" | "ADMIN";
 }
 
+const userSelect = {
+  id: true,
+  email: true,
+  name: true,
+  role: true,
+};
+
 export async function getSessionUser(req: NextRequest): Promise<AuthenticatedUser | null> {
-  void req;
+  // 1. ตรวจสอบจาก Stateful Session (CPE OAuth) ผ่านคุกกี้ของ Request
+  const sessionToken = req.cookies.get("session_token")?.value;
+
+  if (sessionToken) {
+    const dbSession = await prisma.session.findUnique({
+      where: { sessionToken },
+      include: {
+        user: {
+          select: userSelect,
+        },
+      },
+    });
+
+    // ตรวจสอบว่ามี session และยังไม่หมดอายุ
+    if (dbSession && new Date(dbSession.expires) > new Date()) {
+      return {
+        id: dbSession.user.id,
+        email: dbSession.user.email,
+        name: dbSession.user.name,
+        role: dbSession.user.role as "USER" | "ADMIN",
+      };
+    }
+  }
+
+  // 2. ตรวจสอบจาก Auth.js Session (Google OAuth / Credentials)
   const authSession = await auth();
-  if (!authSession?.user?.email) return null;
+  if (authSession?.user?.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: authSession.user.email },
+      select: userSelect,
+    });
 
-  const user = await prisma.user.findUnique({
-    where: { email: authSession.user.email },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-    },
-  });
+    if (user) {
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role as "USER" | "ADMIN",
+      };
+    }
+  }
 
-  if (!user) return null;
-
-  return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role as "USER" | "ADMIN",
-  };
+  return null;
 }
