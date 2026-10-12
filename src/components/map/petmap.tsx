@@ -244,9 +244,29 @@ export default function PetMap() {
               icon={placeIcon}
             >
               <Popup>
-                <strong>{place.name}</strong>
-                <br />
-                {place.type}
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  <strong>{place.name}</strong>
+                  <span style={{ fontSize: "0.85rem", color: "#666" }}>{place.type}</span>
+                  
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "inline-block",
+                      marginTop: "4px",
+                      padding: "4px 8px",
+                      backgroundColor: "#2563eb",
+                      color: "#fff",
+                      textDecoration: "none",
+                      borderRadius: "4px",
+                      fontSize: "0.8rem",
+                      textAlign: "center",
+                    }}
+                  >
+                    📍 เปิดใน Google Maps ↗
+                  </a>
+                </div>
               </Popup>
             </Marker>
           ))}
