@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getListingsQuerySchema, createListingSchema } from "@/lib/validations/listing";
 import { getSessionUser } from "@/lib/auth-guard";
+import { Prisma } from "@/generated/prisma/client";
 
 // GET /api/listings - ดึงรายการหาบ้าน/ซื้อขาย (Visitor ดูได้แบบ Read-only)
 export async function GET(req: NextRequest) {
@@ -64,8 +65,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Validate Request Body[cite: 1]
-    const body = await req.json();
+    // 2. Validate Request Body
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, message: "ข้อมูลไม่ถูกต้อง" },
+        { status: 400 }
+      );
+    }
+
     const validation = createListingSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
@@ -74,9 +84,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, species, price, type, mediaUrls } = validation.data;
+    const { title, description, species, price, type, media } = validation.data;
 
-    // 3. ใช้ Nested Write บันทึก Listing พร้อม ListingMedia ใน Transaction เดียว[cite: 2, 9]
+    // 3. รูปต้องเป็นของผู้ใช้คนนี้ (purpose = listing) และห้ามซ้ำกัน
+    const prefix = `petmorchor/${user.id}/listing/`;
+    const ids = media.map((m) => m.publicId);
+    if (
+      !ids.every((id) => id.startsWith(prefix)) ||
+      new Set(ids).size !== ids.length
+    ) {
+      return NextResponse.json(
+        { success: false, message: "ไฟล์รูปภาพไม่ถูกต้อง" },
+        { status: 400 }
+      );
+    }
+
+    const cloud = process.env.CLOUDINARY_CLOUD_NAME;
+
+    // 4. Nested Write บันทึก Listing พร้อม ListingMedia ใน Transaction เดียว
     const newListing = await prisma.listing.create({
       data: {
         userId: user.id,
@@ -87,17 +112,34 @@ export async function POST(req: NextRequest) {
         type,
         status: "AVAILABLE",
         media: {
-          create: mediaUrls.map((url) => ({ mediaUrl: url })),
+          create: media.map((m, i) => ({
+            // สร้าง URL ฝั่ง server เอง ไม่รับ URL จาก client
+            mediaUrl: `https://res.cloudinary.com/${cloud}/image/upload/${m.publicId}`,
+            publicId: m.publicId,
+            width: m.width,
+            height: m.height,
+            order: i,
+          })),
         },
       },
       include: {
-        media: true,
+        media: { orderBy: { id: "asc" } },
         user: { select: { id: true, name: true } },
       },
     });
 
     return NextResponse.json({ success: true, data: newListing }, { status: 201 });
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"    
+    ) {
+      // publicId เคยถูกใช้ในประกาศอื่นแล้ว (unique)
+      return NextResponse.json(
+        { success: false, message: "ไฟล์รูปภาพไม่ถูกต้อง" },
+        { status: 400 }
+      );
+    }
     console.error("POST /api/listings error:", error);
     return NextResponse.json({ success: false, message: "สร้างประกาศไม่สำเร็จ" }, { status: 500 });
   }

@@ -29,11 +29,17 @@ export type AggregatePostMedia = {
 export type PostMediaAvgAggregateOutputType = {
   id: number | null
   postId: number | null
+  width: number | null
+  height: number | null
+  order: number | null
 }
 
 export type PostMediaSumAggregateOutputType = {
   id: number | null
   postId: number | null
+  width: number | null
+  height: number | null
+  order: number | null
 }
 
 export type PostMediaMinAggregateOutputType = {
@@ -41,6 +47,10 @@ export type PostMediaMinAggregateOutputType = {
   postId: number | null
   mediaUrl: string | null
   mediaType: string | null
+  publicId: string | null
+  width: number | null
+  height: number | null
+  order: number | null
   createdAt: Date | null
 }
 
@@ -49,6 +59,10 @@ export type PostMediaMaxAggregateOutputType = {
   postId: number | null
   mediaUrl: string | null
   mediaType: string | null
+  publicId: string | null
+  width: number | null
+  height: number | null
+  order: number | null
   createdAt: Date | null
 }
 
@@ -57,6 +71,10 @@ export type PostMediaCountAggregateOutputType = {
   postId: number
   mediaUrl: number
   mediaType: number
+  publicId: number
+  width: number
+  height: number
+  order: number
   createdAt: number
   _all: number
 }
@@ -65,11 +83,17 @@ export type PostMediaCountAggregateOutputType = {
 export type PostMediaAvgAggregateInputType = {
   id?: true
   postId?: true
+  width?: true
+  height?: true
+  order?: true
 }
 
 export type PostMediaSumAggregateInputType = {
   id?: true
   postId?: true
+  width?: true
+  height?: true
+  order?: true
 }
 
 export type PostMediaMinAggregateInputType = {
@@ -77,6 +101,10 @@ export type PostMediaMinAggregateInputType = {
   postId?: true
   mediaUrl?: true
   mediaType?: true
+  publicId?: true
+  width?: true
+  height?: true
+  order?: true
   createdAt?: true
 }
 
@@ -85,6 +113,10 @@ export type PostMediaMaxAggregateInputType = {
   postId?: true
   mediaUrl?: true
   mediaType?: true
+  publicId?: true
+  width?: true
+  height?: true
+  order?: true
   createdAt?: true
 }
 
@@ -93,6 +125,10 @@ export type PostMediaCountAggregateInputType = {
   postId?: true
   mediaUrl?: true
   mediaType?: true
+  publicId?: true
+  width?: true
+  height?: true
+  order?: true
   createdAt?: true
   _all?: true
 }
@@ -188,6 +224,10 @@ export type PostMediaGroupByOutputType = {
   postId: number
   mediaUrl: string
   mediaType: string
+  publicId: string | null
+  width: number | null
+  height: number | null
+  order: number
   createdAt: Date
   _count: PostMediaCountAggregateOutputType | null
   _avg: PostMediaAvgAggregateOutputType | null
@@ -219,6 +259,10 @@ export type PostMediaWhereInput = {
   postId?: Prisma.IntFilter<"PostMedia"> | number
   mediaUrl?: Prisma.StringFilter<"PostMedia"> | string
   mediaType?: Prisma.StringFilter<"PostMedia"> | string
+  publicId?: Prisma.StringNullableFilter<"PostMedia"> | string | null
+  width?: Prisma.IntNullableFilter<"PostMedia"> | number | null
+  height?: Prisma.IntNullableFilter<"PostMedia"> | number | null
+  order?: Prisma.IntFilter<"PostMedia"> | number
   createdAt?: Prisma.DateTimeFilter<"PostMedia"> | Date | string
   post?: Prisma.XOR<Prisma.PostScalarRelationFilter, Prisma.PostWhereInput>
 }
@@ -228,27 +272,39 @@ export type PostMediaOrderByWithRelationInput = {
   postId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
+  publicId?: Prisma.SortOrderInput | Prisma.SortOrder
+  width?: Prisma.SortOrderInput | Prisma.SortOrder
+  height?: Prisma.SortOrderInput | Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   post?: Prisma.PostOrderByWithRelationInput
 }
 
 export type PostMediaWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  publicId?: string
   AND?: Prisma.PostMediaWhereInput | Prisma.PostMediaWhereInput[]
   OR?: Prisma.PostMediaWhereInput[]
   NOT?: Prisma.PostMediaWhereInput | Prisma.PostMediaWhereInput[]
   postId?: Prisma.IntFilter<"PostMedia"> | number
   mediaUrl?: Prisma.StringFilter<"PostMedia"> | string
   mediaType?: Prisma.StringFilter<"PostMedia"> | string
+  width?: Prisma.IntNullableFilter<"PostMedia"> | number | null
+  height?: Prisma.IntNullableFilter<"PostMedia"> | number | null
+  order?: Prisma.IntFilter<"PostMedia"> | number
   createdAt?: Prisma.DateTimeFilter<"PostMedia"> | Date | string
   post?: Prisma.XOR<Prisma.PostScalarRelationFilter, Prisma.PostWhereInput>
-}, "id">
+}, "id" | "publicId">
 
 export type PostMediaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   postId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
+  publicId?: Prisma.SortOrderInput | Prisma.SortOrder
+  width?: Prisma.SortOrderInput | Prisma.SortOrder
+  height?: Prisma.SortOrderInput | Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.PostMediaCountOrderByAggregateInput
   _avg?: Prisma.PostMediaAvgOrderByAggregateInput
@@ -265,12 +321,20 @@ export type PostMediaScalarWhereWithAggregatesInput = {
   postId?: Prisma.IntWithAggregatesFilter<"PostMedia"> | number
   mediaUrl?: Prisma.StringWithAggregatesFilter<"PostMedia"> | string
   mediaType?: Prisma.StringWithAggregatesFilter<"PostMedia"> | string
+  publicId?: Prisma.StringNullableWithAggregatesFilter<"PostMedia"> | string | null
+  width?: Prisma.IntNullableWithAggregatesFilter<"PostMedia"> | number | null
+  height?: Prisma.IntNullableWithAggregatesFilter<"PostMedia"> | number | null
+  order?: Prisma.IntWithAggregatesFilter<"PostMedia"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"PostMedia"> | Date | string
 }
 
 export type PostMediaCreateInput = {
   mediaUrl: string
   mediaType: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
   post: Prisma.PostCreateNestedOneWithoutMediaInput
 }
@@ -280,12 +344,20 @@ export type PostMediaUncheckedCreateInput = {
   postId: number
   mediaUrl: string
   mediaType: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
 export type PostMediaUpdateInput = {
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   post?: Prisma.PostUpdateOneRequiredWithoutMediaNestedInput
 }
@@ -295,6 +367,10 @@ export type PostMediaUncheckedUpdateInput = {
   postId?: Prisma.IntFieldUpdateOperationsInput | number
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -303,12 +379,20 @@ export type PostMediaCreateManyInput = {
   postId: number
   mediaUrl: string
   mediaType: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
 export type PostMediaUpdateManyMutationInput = {
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -317,6 +401,10 @@ export type PostMediaUncheckedUpdateManyInput = {
   postId?: Prisma.IntFieldUpdateOperationsInput | number
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -335,12 +423,19 @@ export type PostMediaCountOrderByAggregateInput = {
   postId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type PostMediaAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   postId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
 }
 
 export type PostMediaMaxOrderByAggregateInput = {
@@ -348,6 +443,10 @@ export type PostMediaMaxOrderByAggregateInput = {
   postId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -356,12 +455,19 @@ export type PostMediaMinOrderByAggregateInput = {
   postId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
   mediaType?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type PostMediaSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   postId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
 }
 
 export type PostMediaCreateNestedManyWithoutPostInput = {
@@ -409,6 +515,10 @@ export type PostMediaUncheckedUpdateManyWithoutPostNestedInput = {
 export type PostMediaCreateWithoutPostInput = {
   mediaUrl: string
   mediaType: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
@@ -416,6 +526,10 @@ export type PostMediaUncheckedCreateWithoutPostInput = {
   id?: number
   mediaUrl: string
   mediaType: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
@@ -453,6 +567,10 @@ export type PostMediaScalarWhereInput = {
   postId?: Prisma.IntFilter<"PostMedia"> | number
   mediaUrl?: Prisma.StringFilter<"PostMedia"> | string
   mediaType?: Prisma.StringFilter<"PostMedia"> | string
+  publicId?: Prisma.StringNullableFilter<"PostMedia"> | string | null
+  width?: Prisma.IntNullableFilter<"PostMedia"> | number | null
+  height?: Prisma.IntNullableFilter<"PostMedia"> | number | null
+  order?: Prisma.IntFilter<"PostMedia"> | number
   createdAt?: Prisma.DateTimeFilter<"PostMedia"> | Date | string
 }
 
@@ -460,12 +578,20 @@ export type PostMediaCreateManyPostInput = {
   id?: number
   mediaUrl: string
   mediaType: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
 export type PostMediaUpdateWithoutPostInput = {
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -473,6 +599,10 @@ export type PostMediaUncheckedUpdateWithoutPostInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -480,6 +610,10 @@ export type PostMediaUncheckedUpdateManyWithoutPostInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
   mediaType?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -490,6 +624,10 @@ export type PostMediaSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   postId?: boolean
   mediaUrl?: boolean
   mediaType?: boolean
+  publicId?: boolean
+  width?: boolean
+  height?: boolean
+  order?: boolean
   createdAt?: boolean
   post?: boolean | Prisma.PostDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["postMedia"]>
@@ -499,6 +637,10 @@ export type PostMediaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   postId?: boolean
   mediaUrl?: boolean
   mediaType?: boolean
+  publicId?: boolean
+  width?: boolean
+  height?: boolean
+  order?: boolean
   createdAt?: boolean
   post?: boolean | Prisma.PostDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["postMedia"]>
@@ -508,6 +650,10 @@ export type PostMediaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   postId?: boolean
   mediaUrl?: boolean
   mediaType?: boolean
+  publicId?: boolean
+  width?: boolean
+  height?: boolean
+  order?: boolean
   createdAt?: boolean
   post?: boolean | Prisma.PostDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["postMedia"]>
@@ -517,10 +663,14 @@ export type PostMediaSelectScalar = {
   postId?: boolean
   mediaUrl?: boolean
   mediaType?: boolean
+  publicId?: boolean
+  width?: boolean
+  height?: boolean
+  order?: boolean
   createdAt?: boolean
 }
 
-export type PostMediaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "postId" | "mediaUrl" | "mediaType" | "createdAt", ExtArgs["result"]["postMedia"]>
+export type PostMediaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "postId" | "mediaUrl" | "mediaType" | "publicId" | "width" | "height" | "order" | "createdAt", ExtArgs["result"]["postMedia"]>
 export type PostMediaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   post?: boolean | Prisma.PostDefaultArgs<ExtArgs>
 }
@@ -541,6 +691,10 @@ export type $PostMediaPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     postId: number
     mediaUrl: string
     mediaType: string
+    publicId: string | null
+    width: number | null
+    height: number | null
+    order: number
     createdAt: Date
   }, ExtArgs["result"]["postMedia"]>
   composites: {}
@@ -970,6 +1124,10 @@ export interface PostMediaFieldRefs {
   readonly postId: Prisma.FieldRef<"PostMedia", 'Int'>
   readonly mediaUrl: Prisma.FieldRef<"PostMedia", 'String'>
   readonly mediaType: Prisma.FieldRef<"PostMedia", 'String'>
+  readonly publicId: Prisma.FieldRef<"PostMedia", 'String'>
+  readonly width: Prisma.FieldRef<"PostMedia", 'Int'>
+  readonly height: Prisma.FieldRef<"PostMedia", 'Int'>
+  readonly order: Prisma.FieldRef<"PostMedia", 'Int'>
   readonly createdAt: Prisma.FieldRef<"PostMedia", 'DateTime'>
 }
     

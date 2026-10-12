@@ -57,12 +57,26 @@ export function SiteShell({ children }: { children: ReactNode }) {
     setLogoutError("");
 
     try {
+      // 1. เรียก API Route เพื่อลบ Session ใน DB และลบ Cookie session_token
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
+      if (!res.ok) {
+        throw new Error("Logout API failed");
+      }
+
+      // 2. ล้าง Auth.js session (กรณีล็อกอินผ่าน Google)
       await signOut({ redirect: false });
 
+      // 3. เคลียร์ React Query cache และสถานะ UI
       queryClient.setQueryData(["auth", "me"], null);
+      await queryClient.invalidateQueries({ queryKey: ["auth"] }); // แนะนำ invalidate เพื่อความชัวร์
+
       setOpen(false);
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("Logout error:", error);
       setLogoutError("ออกจากระบบไม่สำเร็จ กรุณาลองอีกครั้ง");
     }
   }

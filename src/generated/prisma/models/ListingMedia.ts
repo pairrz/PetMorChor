@@ -29,17 +29,27 @@ export type AggregateListingMedia = {
 export type ListingMediaAvgAggregateOutputType = {
   id: number | null
   listingId: number | null
+  width: number | null
+  height: number | null
+  order: number | null
 }
 
 export type ListingMediaSumAggregateOutputType = {
   id: number | null
   listingId: number | null
+  width: number | null
+  height: number | null
+  order: number | null
 }
 
 export type ListingMediaMinAggregateOutputType = {
   id: number | null
   listingId: number | null
   mediaUrl: string | null
+  publicId: string | null
+  width: number | null
+  height: number | null
+  order: number | null
   createdAt: Date | null
 }
 
@@ -47,6 +57,10 @@ export type ListingMediaMaxAggregateOutputType = {
   id: number | null
   listingId: number | null
   mediaUrl: string | null
+  publicId: string | null
+  width: number | null
+  height: number | null
+  order: number | null
   createdAt: Date | null
 }
 
@@ -54,6 +68,10 @@ export type ListingMediaCountAggregateOutputType = {
   id: number
   listingId: number
   mediaUrl: number
+  publicId: number
+  width: number
+  height: number
+  order: number
   createdAt: number
   _all: number
 }
@@ -62,17 +80,27 @@ export type ListingMediaCountAggregateOutputType = {
 export type ListingMediaAvgAggregateInputType = {
   id?: true
   listingId?: true
+  width?: true
+  height?: true
+  order?: true
 }
 
 export type ListingMediaSumAggregateInputType = {
   id?: true
   listingId?: true
+  width?: true
+  height?: true
+  order?: true
 }
 
 export type ListingMediaMinAggregateInputType = {
   id?: true
   listingId?: true
   mediaUrl?: true
+  publicId?: true
+  width?: true
+  height?: true
+  order?: true
   createdAt?: true
 }
 
@@ -80,6 +108,10 @@ export type ListingMediaMaxAggregateInputType = {
   id?: true
   listingId?: true
   mediaUrl?: true
+  publicId?: true
+  width?: true
+  height?: true
+  order?: true
   createdAt?: true
 }
 
@@ -87,6 +119,10 @@ export type ListingMediaCountAggregateInputType = {
   id?: true
   listingId?: true
   mediaUrl?: true
+  publicId?: true
+  width?: true
+  height?: true
+  order?: true
   createdAt?: true
   _all?: true
 }
@@ -181,6 +217,10 @@ export type ListingMediaGroupByOutputType = {
   id: number
   listingId: number
   mediaUrl: string
+  publicId: string | null
+  width: number | null
+  height: number | null
+  order: number
   createdAt: Date
   _count: ListingMediaCountAggregateOutputType | null
   _avg: ListingMediaAvgAggregateOutputType | null
@@ -211,6 +251,10 @@ export type ListingMediaWhereInput = {
   id?: Prisma.IntFilter<"ListingMedia"> | number
   listingId?: Prisma.IntFilter<"ListingMedia"> | number
   mediaUrl?: Prisma.StringFilter<"ListingMedia"> | string
+  publicId?: Prisma.StringNullableFilter<"ListingMedia"> | string | null
+  width?: Prisma.IntNullableFilter<"ListingMedia"> | number | null
+  height?: Prisma.IntNullableFilter<"ListingMedia"> | number | null
+  order?: Prisma.IntFilter<"ListingMedia"> | number
   createdAt?: Prisma.DateTimeFilter<"ListingMedia"> | Date | string
   listing?: Prisma.XOR<Prisma.ListingScalarRelationFilter, Prisma.ListingWhereInput>
 }
@@ -219,25 +263,37 @@ export type ListingMediaOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   listingId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
+  publicId?: Prisma.SortOrderInput | Prisma.SortOrder
+  width?: Prisma.SortOrderInput | Prisma.SortOrder
+  height?: Prisma.SortOrderInput | Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   listing?: Prisma.ListingOrderByWithRelationInput
 }
 
 export type ListingMediaWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  publicId?: string
   AND?: Prisma.ListingMediaWhereInput | Prisma.ListingMediaWhereInput[]
   OR?: Prisma.ListingMediaWhereInput[]
   NOT?: Prisma.ListingMediaWhereInput | Prisma.ListingMediaWhereInput[]
   listingId?: Prisma.IntFilter<"ListingMedia"> | number
   mediaUrl?: Prisma.StringFilter<"ListingMedia"> | string
+  width?: Prisma.IntNullableFilter<"ListingMedia"> | number | null
+  height?: Prisma.IntNullableFilter<"ListingMedia"> | number | null
+  order?: Prisma.IntFilter<"ListingMedia"> | number
   createdAt?: Prisma.DateTimeFilter<"ListingMedia"> | Date | string
   listing?: Prisma.XOR<Prisma.ListingScalarRelationFilter, Prisma.ListingWhereInput>
-}, "id">
+}, "id" | "publicId">
 
 export type ListingMediaOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   listingId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
+  publicId?: Prisma.SortOrderInput | Prisma.SortOrder
+  width?: Prisma.SortOrderInput | Prisma.SortOrder
+  height?: Prisma.SortOrderInput | Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   _count?: Prisma.ListingMediaCountOrderByAggregateInput
   _avg?: Prisma.ListingMediaAvgOrderByAggregateInput
@@ -253,11 +309,19 @@ export type ListingMediaScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"ListingMedia"> | number
   listingId?: Prisma.IntWithAggregatesFilter<"ListingMedia"> | number
   mediaUrl?: Prisma.StringWithAggregatesFilter<"ListingMedia"> | string
+  publicId?: Prisma.StringNullableWithAggregatesFilter<"ListingMedia"> | string | null
+  width?: Prisma.IntNullableWithAggregatesFilter<"ListingMedia"> | number | null
+  height?: Prisma.IntNullableWithAggregatesFilter<"ListingMedia"> | number | null
+  order?: Prisma.IntWithAggregatesFilter<"ListingMedia"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ListingMedia"> | Date | string
 }
 
 export type ListingMediaCreateInput = {
   mediaUrl: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
   listing: Prisma.ListingCreateNestedOneWithoutMediaInput
 }
@@ -266,11 +330,19 @@ export type ListingMediaUncheckedCreateInput = {
   id?: number
   listingId: number
   mediaUrl: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
 export type ListingMediaUpdateInput = {
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   listing?: Prisma.ListingUpdateOneRequiredWithoutMediaNestedInput
 }
@@ -279,6 +351,10 @@ export type ListingMediaUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   listingId?: Prisma.IntFieldUpdateOperationsInput | number
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -286,11 +362,19 @@ export type ListingMediaCreateManyInput = {
   id?: number
   listingId: number
   mediaUrl: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
 export type ListingMediaUpdateManyMutationInput = {
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -298,6 +382,10 @@ export type ListingMediaUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   listingId?: Prisma.IntFieldUpdateOperationsInput | number
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -315,18 +403,29 @@ export type ListingMediaCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   listingId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type ListingMediaAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   listingId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
 }
 
 export type ListingMediaMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   listingId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
@@ -334,12 +433,19 @@ export type ListingMediaMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   listingId?: Prisma.SortOrder
   mediaUrl?: Prisma.SortOrder
+  publicId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
 }
 
 export type ListingMediaSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   listingId?: Prisma.SortOrder
+  width?: Prisma.SortOrder
+  height?: Prisma.SortOrder
+  order?: Prisma.SortOrder
 }
 
 export type ListingMediaCreateNestedManyWithoutListingInput = {
@@ -384,14 +490,30 @@ export type ListingMediaUncheckedUpdateManyWithoutListingNestedInput = {
   deleteMany?: Prisma.ListingMediaScalarWhereInput | Prisma.ListingMediaScalarWhereInput[]
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type ListingMediaCreateWithoutListingInput = {
   mediaUrl: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
 export type ListingMediaUncheckedCreateWithoutListingInput = {
   id?: number
   mediaUrl: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
@@ -428,29 +550,49 @@ export type ListingMediaScalarWhereInput = {
   id?: Prisma.IntFilter<"ListingMedia"> | number
   listingId?: Prisma.IntFilter<"ListingMedia"> | number
   mediaUrl?: Prisma.StringFilter<"ListingMedia"> | string
+  publicId?: Prisma.StringNullableFilter<"ListingMedia"> | string | null
+  width?: Prisma.IntNullableFilter<"ListingMedia"> | number | null
+  height?: Prisma.IntNullableFilter<"ListingMedia"> | number | null
+  order?: Prisma.IntFilter<"ListingMedia"> | number
   createdAt?: Prisma.DateTimeFilter<"ListingMedia"> | Date | string
 }
 
 export type ListingMediaCreateManyListingInput = {
   id?: number
   mediaUrl: string
+  publicId?: string | null
+  width?: number | null
+  height?: number | null
+  order?: number
   createdAt?: Date | string
 }
 
 export type ListingMediaUpdateWithoutListingInput = {
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ListingMediaUncheckedUpdateWithoutListingInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ListingMediaUncheckedUpdateManyWithoutListingInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   mediaUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  publicId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  width?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  height?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
@@ -460,6 +602,10 @@ export type ListingMediaSelect<ExtArgs extends runtime.Types.Extensions.Internal
   id?: boolean
   listingId?: boolean
   mediaUrl?: boolean
+  publicId?: boolean
+  width?: boolean
+  height?: boolean
+  order?: boolean
   createdAt?: boolean
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["listingMedia"]>
@@ -468,6 +614,10 @@ export type ListingMediaSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   listingId?: boolean
   mediaUrl?: boolean
+  publicId?: boolean
+  width?: boolean
+  height?: boolean
+  order?: boolean
   createdAt?: boolean
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["listingMedia"]>
@@ -476,6 +626,10 @@ export type ListingMediaSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   id?: boolean
   listingId?: boolean
   mediaUrl?: boolean
+  publicId?: boolean
+  width?: boolean
+  height?: boolean
+  order?: boolean
   createdAt?: boolean
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["listingMedia"]>
@@ -484,10 +638,14 @@ export type ListingMediaSelectScalar = {
   id?: boolean
   listingId?: boolean
   mediaUrl?: boolean
+  publicId?: boolean
+  width?: boolean
+  height?: boolean
+  order?: boolean
   createdAt?: boolean
 }
 
-export type ListingMediaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "listingId" | "mediaUrl" | "createdAt", ExtArgs["result"]["listingMedia"]>
+export type ListingMediaOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "listingId" | "mediaUrl" | "publicId" | "width" | "height" | "order" | "createdAt", ExtArgs["result"]["listingMedia"]>
 export type ListingMediaInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
 }
@@ -507,6 +665,10 @@ export type $ListingMediaPayload<ExtArgs extends runtime.Types.Extensions.Intern
     id: number
     listingId: number
     mediaUrl: string
+    publicId: string | null
+    width: number | null
+    height: number | null
+    order: number
     createdAt: Date
   }, ExtArgs["result"]["listingMedia"]>
   composites: {}
@@ -935,6 +1097,10 @@ export interface ListingMediaFieldRefs {
   readonly id: Prisma.FieldRef<"ListingMedia", 'Int'>
   readonly listingId: Prisma.FieldRef<"ListingMedia", 'Int'>
   readonly mediaUrl: Prisma.FieldRef<"ListingMedia", 'String'>
+  readonly publicId: Prisma.FieldRef<"ListingMedia", 'String'>
+  readonly width: Prisma.FieldRef<"ListingMedia", 'Int'>
+  readonly height: Prisma.FieldRef<"ListingMedia", 'Int'>
+  readonly order: Prisma.FieldRef<"ListingMedia", 'Int'>
   readonly createdAt: Prisma.FieldRef<"ListingMedia", 'DateTime'>
 }
     

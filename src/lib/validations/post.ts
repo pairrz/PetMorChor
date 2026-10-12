@@ -12,10 +12,12 @@ export const getPostsQuerySchema = z.object({
   category: z.enum(["GENERAL", "LOST_PET", "ADOPTION"]).optional(),
 });
 
-// ตรวจสอบ Request Body สำหรับสร้าง PostMedia
+// ตรวจสอบ Metadata ของรูปภาพที่อัปโหลดขึ้น Cloudinary สำเร็จแล้ว
 export const postMediaSchema = z.object({
-  mediaUrl: z.string().url("ลิงก์รูปภาพหรือวิดีโอไม่ถูกต้อง"),
-  mediaType: z.string().min(1, "กรุณาระบุประเภทของสื่อ"),
+  publicId: z.string().min(1, "ต้องระบุ publicId ของรูปภาพ"),
+  mediaType: z.string().default("IMAGE"),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
 });
 
 // ตรวจสอบ Request Body สำหรับสร้างโพสต์ใหม่ POST /api/posts
@@ -34,9 +36,9 @@ export const createPostSchema = z.object({
   media: z
     .array(postMediaSchema)
     .max(10, "อัปโหลดรูปภาพหรือวิดีโอได้สูงสุด 10 ไฟล์")
-    .optional()
     .default([]),
 });
 
 export type GetPostsQueryInput = z.infer<typeof getPostsQuerySchema>;
+export type PostMediaInput = z.infer<typeof postMediaSchema>;
 export type CreatePostInput = z.infer<typeof createPostSchema>;

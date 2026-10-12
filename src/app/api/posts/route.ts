@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@/generated/prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 import { getPostsQuerySchema, createPostSchema } from "@/lib/validations/post";
 import { getSessionUser } from "@/lib/auth-guard";
 
@@ -10,6 +10,7 @@ interface DecodedCursor {
   id: number;
 }
 
+// GET /api/posts - ดึงฟีดโพสต์
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -53,12 +54,10 @@ export async function GET(req: NextRequest) {
     if (decodedCursor) {
       const cursorDate = new Date(decodedCursor.createdAt);
       const cursorConditions: Prisma.PostWhereInput[] = [
-        // ลำดับ 2: กลุ่มความสำคัญเดียวกัน แต่เวลาเก่าวัดจาก Cursor
         {
           isPinned: decodedCursor.isPinned,
           createdAt: { lt: cursorDate },
         },
-        // ลำดับ 3: กลุ่มความสำคัญและเวลาเท่ากัน ใช้ ID เป็น Tie-breaker
         {
           isPinned: decodedCursor.isPinned,
           createdAt: cursorDate,
@@ -66,7 +65,6 @@ export async function GET(req: NextRequest) {
         },
       ];
 
-      // เมื่อ cursor อยู่ท้ายกลุ่ม pinned ให้ดึงโพสต์กลุ่มปกติต่อด้วย
       if (decodedCursor.isPinned) {
         cursorConditions.unshift({ isPinned: false });
       }
@@ -93,7 +91,6 @@ export async function GET(req: NextRequest) {
         _count: {
           select: { likes: true, comments: true },
         },
-        // เช็คว่า User ปัจจุบันเคยกดไลก์หรือไม่
         likes: currentUserId
           ? {
               where: { userId: currentUserId },
@@ -117,7 +114,6 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // แปลงโครงสร้างให้ Front-end ใช้งานง่าย (ส่ง boolean isLiked แทน raw array)
     const formattedPosts = posts.map(({ likes, ...post }) => ({
       ...post,
       isLiked: Array.isArray(likes) && likes.length > 0,
@@ -140,47 +136,88 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/posts - สร้างโพสต์อวดสัตว์เลี้ยง
+// POST /api/posts - สร้างโพสต์อวดสัตว์เลี้ยงพร้อมรูปภาพ
 export async function POST(req: NextRequest) {
   try {
-    // 1. ตรวจสอบ Identity ของผู้ใช้จาก Session[cite: 5, 7]
+    // 1. ตรวจสอบ Session ผู้ใช้
     const user = await getSessionUser(req);
     if (!user) {
       return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบก่อนทำการโพสต์" },
+        {
+          success: false,
+          message: "กรุณาเข้าสู่ระบบก่อนทำการโพสต์",
+        },
         { status: 401 }
       );
     }
 
-    // 2. Validate payload ผ่าน Zod[cite: 1]
-    const body = await req.json();
-    const validation = createPostSchema.safeParse(body);
-    if (!validation.success) {
+    // 2. อ่านและ Parse Request Body เป็น JSON
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
       return NextResponse.json(
-        { success: false, errors: validation.error.flatten().fieldErrors },
+        { success: false, message: "ข้อมูลไม่ถูกต้อง" },
         { status: 400 }
       );
     }
 
-    const { caption, description, category, media } = validation.data;
+    // 3. ตรวจสอบข้อมูลด้วย Zod
+    const validation = createPostSchema.safeParse(body);
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          errors: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
 
-    // 3. ใช้ Nested Write ของ Prisma เพื่อสร้าง Post และ PostMedia พร้อมกันในคราวเดียว[cite: 2]
+    const { caption, description, category, media = [] } = validation.data;
+
+     const prefix = `petmorchor/${user.id}/post/`;
+      const ids = media.map((m) => m.publicId);
+    if (
+      !ids.every((id) => id.startsWith(prefix)) ||
+      new Set(ids).size !== ids.length
+    ) {
+      return NextResponse.json(
+        { success: false, message: "ไฟล์รูปภาพไม่ถูกต้อง" },
+        { status: 400 }
+      );
+    }
+  
+
+    const cloud = process.env.CLOUDINARY_CLOUD_NAME;
+
+    // 5. บันทึก Post พร้อมเชื่อม PostMedia แบบ Nested Write
     const newPost = await prisma.post.create({
       data: {
         caption,
         description,
         category,
         userId: user.id,
-        media: {
-          create: media.map((item) => ({
-            mediaUrl: item.mediaUrl,
-            mediaType: item.mediaType,
-          })),
-        },
+        ...(media.length > 0 && {
+          media: {
+             create: media.map((m, i) => ({
+            mediaUrl: `https://res.cloudinary.com/${cloud}/image/upload/${m.publicId}`,
+            mediaType: m.mediaType,
+            publicId: m.publicId,
+            width: m.width,
+            height: m.height,
+            order: i,
+            })),
+          },
+        }),
       },
       include: {
-        user: { select: { id: true, name: true } },
-        media: true,
+        user: {
+          select: { id: true, name: true },
+        },
+        media: {
+          orderBy: { id: "asc" },
+        },
       },
     });
 
@@ -193,9 +230,22 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { success: false, message: "ไฟล์รูปภาพนี้ถูกใช้งานไปแล้ว" },
+        { status: 400 }
+      );
+    }
+
     console.error("POST /api/posts error:", error);
     return NextResponse.json(
-      { success: false, message: "ไม่สามารถสร้างโพสต์ได้" },
+      {
+        success: false,
+        message: "ไม่สามารถสร้างโพสต์ได้",
+      },
       { status: 500 }
     );
   }

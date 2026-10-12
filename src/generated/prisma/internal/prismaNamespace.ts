@@ -1625,6 +1625,10 @@ export const ListingMediaScalarFieldEnum = {
   id: 'id',
   listingId: 'listingId',
   mediaUrl: 'mediaUrl',
+  publicId: 'publicId',
+  width: 'width',
+  height: 'height',
+  order: 'order',
   createdAt: 'createdAt'
 } as const
 
@@ -1682,6 +1686,10 @@ export const PostMediaScalarFieldEnum = {
   postId: 'postId',
   mediaUrl: 'mediaUrl',
   mediaType: 'mediaType',
+  publicId: 'publicId',
+  width: 'width',
+  height: 'height',
+  order: 'order',
   createdAt: 'createdAt'
 } as const
 
