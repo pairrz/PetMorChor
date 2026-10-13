@@ -6,13 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Bell,
   Menu,
-  MessageCircle,
   Plus,
   Search,
   X,
 } from "lucide-react";
+import { NavbarChatBadge } from "@/components/chat/NavBarChatBadge";
 import { nav } from "@/lib/pet-data";
 
 type User = {
@@ -120,15 +119,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="header-actions">
-          <Link href="/chat">
-            <MessageCircle size={19} />
-            แชต
-          </Link>
-
-          <Link href="/notifications">
-            <Bell size={19} />
-            การแจ้งเตือน
-          </Link>
+          <NavbarChatBadge />
 
           <Link href="/profile">
             <span className="avatar">{avatarLetter}</span>

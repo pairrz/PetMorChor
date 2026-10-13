@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { SiteShell } from "@/components/layout/SiteShell";
 import { getAdminUser } from "@/lib/admin";
+import { InformationLibrary } from "./InformationLibrary";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
@@ -19,65 +20,42 @@ export default async function InformationPage() {
     getAdminUser(),
   ]);
 
-  const hasArticles = categories.some((category) => category.articles.length > 0);
+  const visibleCategories = categories.filter((category) => category.articles.length > 0);
 
   return (
     <SiteShell>
       <main className={styles.page}>
-        <header className={styles.heading}>
-          <span className={styles.eyebrow}>PETMORCHOR INFORMATION</span>
-          <div className={styles.headingRow}>
-            <h1>ความรู้เรื่องสัตว์เลี้ยง</h1>
+        <header className={styles.hero}>
+          <div className={styles.heroContent}>
+            <span className={styles.eyebrow}>คลังความรู้ PETMORCHOR</span>
+            <h1>ดูแลเพื่อนตัวโปรด<br />ให้มีความสุขในทุกวัน</h1>
+            <p>รวมคำแนะนำเรื่องการดูแล โภชนาการ และสุขภาพสัตว์เลี้ยง อ่านง่าย นำไปใช้ได้จริง</p>
             {user && (
               <Link className={styles.manageButton} href="/admin/articles">
                 จัดการบทความ
               </Link>
             )}
           </div>
-          <p>บทความและคำแนะนำสำหรับดูแลสัตว์เลี้ยง จากชุมชน PetMorChor</p>
+          <div className={styles.heroNote} aria-hidden="true">
+            <span>🐾</span>
+            <strong>ความรู้ดี ๆ<br />เพื่อเพื่อนสี่ขา</strong>
+            <i />
+          </div>
         </header>
 
-        {!hasArticles ? (
-          <section className={styles.empty}>
-            <span aria-hidden="true">📚</span>
-            <h2>ยังไม่มีบทความ</h2>
-            <p>บทความจะแสดงที่นี่เมื่อมีการเพิ่มข้อมูล</p>
-          </section>
-        ) : (
-          <div className={styles.categories}>
-            {categories.map((category) => {
-              if (category.articles.length === 0) return null;
-
-              return (
-                <section className={styles.category} key={category.id}>
-                  <h2>{category.name}</h2>
-
-                  <div className={styles.articles}>
-                    {category.articles.map((article) => (
-                      <article className={styles.article} key={article.id}>
-                        <div className={styles.articleMeta}>
-                          <span>{category.name}</span>
-                          <span>{article.speciesTag}</span>
-                        </div>
-
-                        <h3>{article.title}</h3>
-                        <p className={styles.content}>{article.content}</p>
-
-                        <time dateTime={article.createdAt.toISOString()}>
-                          {article.createdAt.toLocaleDateString("th-TH", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          })}
-                        </time>
-                      </article>
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
+        <InformationLibrary
+          categories={visibleCategories.map((category) => ({
+            id: category.id,
+            name: category.name,
+            articles: category.articles.map((article) => ({
+              id: article.id,
+              title: article.title,
+              content: article.content,
+              speciesTag: article.speciesTag,
+              createdAt: article.createdAt.toISOString(),
+            })),
+          }))}
+        />
       </main>
     </SiteShell>
   );
