@@ -58,6 +58,7 @@ export const ModelName = {
   ChatRoom: 'ChatRoom',
   ChatParticipant: 'ChatParticipant',
   Message: 'Message',
+  MessageAttachment: 'MessageAttachment',
   Post: 'Post',
   PostMedia: 'PostMedia',
   Like: 'Like',
@@ -164,11 +165,25 @@ export const MessageScalarFieldEnum = {
   roomId: 'roomId',
   senderId: 'senderId',
   content: 'content',
+  isRead: 'isRead',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const MessageAttachmentScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  mediaUrl: 'mediaUrl',
+  publicId: 'publicId',
+  width: 'width',
+  height: 'height',
+  createdAt: 'createdAt'
+} as const
+
+export type MessageAttachmentScalarFieldEnum = (typeof MessageAttachmentScalarFieldEnum)[keyof typeof MessageAttachmentScalarFieldEnum]
 
 
 export const PostScalarFieldEnum = {

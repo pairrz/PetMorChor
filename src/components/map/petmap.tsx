@@ -16,6 +16,8 @@ type Place = {
   category: PlaceCategory;
   lat: number;
   lon: number;
+  address: string;
+  openingHours: string;
 };
 
 type ApiPlace = {
@@ -127,7 +129,14 @@ function toPlace(place: ApiPlace): Place | null {
     category,
     lat,
     lon,
+    address: place.address || "ไม่ระบุที่อยู่",
+    openingHours: place.openingHours || "ไม่ระบุเวลาเปิด-ปิด",
   };
+}
+
+function getGoogleMapsUrl(place: Place) {
+  const query = encodeURIComponent(`${place.name} ${place.address}`);
+  return `https://www.google.com/maps/search/?api=1&query=${query}`;
 }
 
 export default function PetMap() {
@@ -135,6 +144,7 @@ export default function PetMap() {
   const [filter, setFilter] = useState<Filter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -247,9 +257,11 @@ export default function PetMap() {
                 <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                   <strong>{place.name}</strong>
                   <span style={{ fontSize: "0.85rem", color: "#666" }}>{place.type}</span>
+                  <span style={{ fontSize: "0.8rem", color: "#666" }}>{place.address}</span>
+                  <span style={{ fontSize: "0.8rem", color: "#666" }}>เวลา: {place.openingHours}</span>
                   
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`}
+                    href={getGoogleMapsUrl(place)}
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
@@ -301,21 +313,21 @@ export default function PetMap() {
               className={styles.placeCard}
               key={`${place.category}-${place.id}`}
             >
-              <span
-                className={styles.placeIcon}
-                aria-hidden="true"
+              <button
+                type="button"
+                className={styles.placeCardButton}
+                onClick={() => setSelectedPlace(place)}
+                aria-label={`ดูรายละเอียด ${place.name}`}
               >
-                {
-                  filters.find(
-                    (item) => item.id === place.category,
-                  )?.icon
-                }
-              </span>
-
-              <div>
-                <h3>{place.name}</h3>
-                <p>{place.type}</p>
-              </div>
+                <span className={styles.placeIcon} aria-hidden="true">
+                  {filters.find((item) => item.id === place.category)?.icon}
+                </span>
+                <span className={styles.placeCardText}>
+                  <strong>{place.name}</strong>
+                  <span>{place.type}</span>
+                </span>
+                <span className={styles.placeCardArrow} aria-hidden="true">›</span>
+              </button>
             </li>
           ))}
         </ul>
@@ -325,6 +337,55 @@ export default function PetMap() {
             ไม่พบสถานที่ในหมวดหมู่นี้
           </p>
         )
+      )}
+
+      {selectedPlace && (
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedPlace(null);
+          }}
+        >
+          <section
+            className={styles.placeDetails}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="place-details-title"
+          >
+            <button
+              type="button"
+              className={styles.modalClose}
+              onClick={() => setSelectedPlace(null)}
+              aria-label="ปิดรายละเอียดสถานที่"
+            >
+              ×
+            </button>
+            <span className={styles.detailsIcon} aria-hidden="true">
+              {filters.find((item) => item.id === selectedPlace.category)?.icon}
+            </span>
+            <p className={styles.detailsType}>{selectedPlace.type}</p>
+            <h2 id="place-details-title">{selectedPlace.name}</h2>
+            <dl className={styles.detailsList}>
+              <div>
+                <dt>ที่อยู่</dt>
+                <dd>{selectedPlace.address}</dd>
+              </div>
+              <div>
+                <dt>เวลาเปิด-ปิด</dt>
+                <dd>{selectedPlace.openingHours}</dd>
+              </div>
+            </dl>
+            <a
+              className={styles.mapsButton}
+              href={getGoogleMapsUrl(selectedPlace)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              📍 เปิดเส้นทางใน Google Maps ↗
+            </a>
+          </section>
+        </div>
       )}
     </section>
   );

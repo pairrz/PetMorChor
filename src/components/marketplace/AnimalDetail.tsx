@@ -1,9 +1,13 @@
-import Link from "next/link";
-import { MapPin } from "lucide-react";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { LoaderCircle, MapPin, MessageCircle } from "lucide-react";
 
 import { Eyebrow } from "@/components/layout/Eyebrow";
 
 type ListingDetail = {
+  id: number; // เพิ่ม id ของ listing
   title: string;
   description: string;
   species: string;
@@ -16,8 +20,43 @@ type ListingDetail = {
 };
 
 export function AnimalDetail({ listing }: { listing: ListingDetail }) {
+  const router = useRouter();
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+
   const image = listing.media[0]?.mediaUrl;
   const isAdoption = listing.type === "ADOPTION";
+
+  async function handleStartChat() {
+    if (isCreatingChat) return;
+    setIsCreatingChat(true);
+
+    try {
+      // เรียก API สร้างห้องแชท (หรือคืนค่าห้องเดิมถ้ามีอยู่แล้ว)
+      const res = await fetch("/api/chats/room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId: listing.id }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || data.error || "ไม่สามารถเริ่มการสนทนาได้");
+      }
+
+      // วิ่งไปหน้าแชท พร้อมส่ง roomId ไปเปิดห้องนั้นทันที
+      const roomId = data.data?.id ?? data.id;
+      if (roomId) {
+        router.push(`/chat?roomId=${roomId}`);
+      } else {
+        router.push("/chat");
+      }
+    } catch (error: any) {
+      alert(error.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setIsCreatingChat(false);
+    }
+  }
 
   return (
     <div className="animal-detail">
@@ -44,11 +83,26 @@ export function AnimalDetail({ listing }: { listing: ListingDetail }) {
         <p>{listing.description}</p>
 
         <div className="hero-actions">
-          <Link className="primary-cta" href="/chat">
-            Chat with owner
-          </Link>
+          <button
+            type="button"
+            className="primary-cta"
+            onClick={handleStartChat}
+            disabled={isCreatingChat}
+          >
+            {isCreatingChat ? (
+              <>
+                <LoaderCircle className="spinner" size={16} />
+                กำลังเปิดห้องแชท...
+              </>
+            ) : (
+              <>
+                <MessageCircle size={16} />
+                Chat with owner
+              </>
+            )}
+          </button>
 
-          <button className="secondary-cta">
+          <button type="button" className="secondary-cta">
             ♡ Save
           </button>
         </div>

@@ -53,6 +53,11 @@ export type ChatParticipant = Prisma.ChatParticipantModel
  */
 export type Message = Prisma.MessageModel
 /**
+ * Model MessageAttachment
+ * 
+ */
+export type MessageAttachment = Prisma.MessageAttachmentModel
+/**
  * Model Post
  * 
  */

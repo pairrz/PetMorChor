@@ -99,6 +99,57 @@
   background: #fff;
 }
 
+.placeCardButton {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  gap: 13px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.placeCard:has(.placeCardButton:hover) {
+  border-color: #b9a5e8;
+  box-shadow: 0 5px 18px rgb(70 45 120 / 10%);
+}
+
+.placeCardButton:focus-visible {
+  outline: 3px solid rgb(118 82 200 / 35%);
+  outline-offset: 3px;
+  border-radius: 10px;
+}
+
+.placeCardText {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.placeCardText strong {
+  overflow: hidden;
+  color: #302b42;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placeCardText span {
+  color: #777488;
+  font-size: 12px;
+}
+
+.placeCardArrow {
+  margin-left: auto;
+  color: #7652c8;
+  font-size: 25px;
+}
+
 .placeIcon {
   display: grid;
   width: 42px;
@@ -133,6 +184,103 @@
   border-radius: 14px;
   color: #777488;
   text-align: center;
+}
+
+.modalBackdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+  background: rgb(27 22 43 / 45%);
+}
+
+.placeDetails {
+  position: relative;
+  width: min(100%, 460px);
+  padding: 28px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgb(27 22 43 / 25%);
+}
+
+.modalClose {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: #f4f1f8;
+  color: #555064;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.detailsIcon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 14px;
+  background: #f3effb;
+  font-size: 24px;
+}
+
+.detailsType {
+  margin: 16px 0 5px;
+  color: #7652c8;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.placeDetails h2 {
+  margin: 0 0 20px;
+  color: #29243a;
+  font-size: 22px;
+}
+
+.detailsList {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 22px;
+}
+
+.detailsList div {
+  display: grid;
+  gap: 4px;
+}
+
+.detailsList dt {
+  color: #777488;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.detailsList dd {
+  margin: 0;
+  color: #302b42;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.mapsButton {
+  display: block;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #7652c8;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.mapsButton:hover {
+  background: #6843bb;
 }
 
 @media (max-width: 640px) {

@@ -498,10 +498,6 @@ export type PostUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.PostScalarWhereInput | Prisma.PostScalarWhereInput[]
 }
 
-export type BoolFieldUpdateOperationsInput = {
-  set?: boolean
-}
-
 export type PostCreateNestedOneWithoutMediaInput = {
   create?: Prisma.XOR<Prisma.PostCreateWithoutMediaInput, Prisma.PostUncheckedCreateWithoutMediaInput>
   connectOrCreate?: Prisma.PostCreateOrConnectWithoutMediaInput

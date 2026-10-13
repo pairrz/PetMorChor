@@ -404,6 +404,7 @@ export const ModelName = {
   ChatRoom: 'ChatRoom',
   ChatParticipant: 'ChatParticipant',
   Message: 'Message',
+  MessageAttachment: 'MessageAttachment',
   Post: 'Post',
   PostMedia: 'PostMedia',
   Like: 'Like',
@@ -427,7 +428,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "listing" | "listingMedia" | "chatRoom" | "chatParticipant" | "message" | "post" | "postMedia" | "like" | "comment" | "category" | "article" | "placeType" | "place"
+    modelProps: "user" | "session" | "listing" | "listingMedia" | "chatRoom" | "chatParticipant" | "message" | "messageAttachment" | "post" | "postMedia" | "like" | "comment" | "category" | "article" | "placeType" | "place"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -946,6 +947,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.MessageCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.MessageCountAggregateOutputType> | number
+        }
+      }
+    }
+    MessageAttachment: {
+      payload: Prisma.$MessageAttachmentPayload<ExtArgs>
+      fields: Prisma.MessageAttachmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MessageAttachmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MessageAttachmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        findFirst: {
+          args: Prisma.MessageAttachmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MessageAttachmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        findMany: {
+          args: Prisma.MessageAttachmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>[]
+        }
+        create: {
+          args: Prisma.MessageAttachmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        createMany: {
+          args: Prisma.MessageAttachmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MessageAttachmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>[]
+        }
+        delete: {
+          args: Prisma.MessageAttachmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        update: {
+          args: Prisma.MessageAttachmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.MessageAttachmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MessageAttachmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MessageAttachmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.MessageAttachmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MessageAttachmentPayload>
+        }
+        aggregate: {
+          args: Prisma.MessageAttachmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMessageAttachment>
+        }
+        groupBy: {
+          args: Prisma.MessageAttachmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MessageAttachmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MessageAttachmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MessageAttachmentCountAggregateOutputType> | number
         }
       }
     }
@@ -1660,11 +1735,25 @@ export const MessageScalarFieldEnum = {
   roomId: 'roomId',
   senderId: 'senderId',
   content: 'content',
+  isRead: 'isRead',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const MessageAttachmentScalarFieldEnum = {
+  id: 'id',
+  messageId: 'messageId',
+  mediaUrl: 'mediaUrl',
+  publicId: 'publicId',
+  width: 'width',
+  height: 'height',
+  createdAt: 'createdAt'
+} as const
+
+export type MessageAttachmentScalarFieldEnum = (typeof MessageAttachmentScalarFieldEnum)[keyof typeof MessageAttachmentScalarFieldEnum]
 
 
 export const PostScalarFieldEnum = {
@@ -2053,6 +2142,7 @@ export type GlobalOmitConfig = {
   chatRoom?: Prisma.ChatRoomOmit
   chatParticipant?: Prisma.ChatParticipantOmit
   message?: Prisma.MessageOmit
+  messageAttachment?: Prisma.MessageAttachmentOmit
   post?: Prisma.PostOmit
   postMedia?: Prisma.PostMediaOmit
   like?: Prisma.LikeOmit
