@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { io, Socket } from "socket.io-client";
+import { useEffect, useState } from "react";
+import { useSocket } from "@/context/SocketContext";
 
 interface Message {
   id: string;
@@ -15,39 +15,43 @@ interface Message {
 export function useChat(roomId: string, initialMessages: Message[] = [], userId: string) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isTyping, setIsTyping] = useState(false);
-  const socketRef = useRef<Socket | null>(null);
+  const { socket } = useSocket();
 
   useEffect(() => {
-    // สร้าง Socket Connection
-    const socket = io(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:4000", {
-      auth: { userId },
-    });
-    socketRef.current = socket;
+    if (!socket) return;
 
     socket.emit("join_room", { roomId });
 
-    socket.on("new_message", (message: Message) => {
-      setMessages((prev) => [...prev, message]);
-    });
-
-    socket.on("user_typing", (data: { userId: string; isTyping: boolean }) => {
+    const handleNewMessage = (message: Message) => {
+      setMessages((prev) =>
+        prev.some((existing) => existing.id === message.id)
+          ? prev
+          : [...prev, message],
+      );
+    };
+    const handleTyping = (data: { userId: string; isTyping: boolean }) => {
       if (data.userId !== userId) {
         setIsTyping(data.isTyping);
       }
-    });
+    };
+    socket.on("new_message", handleNewMessage);
+
+    socket.on("user_typing", handleTyping);
 
     return () => {
-      socket.disconnect();
+      socket.emit("leave_room", { roomId });
+      socket.off("new_message", handleNewMessage);
+      socket.off("user_typing", handleTyping);
     };
-  }, [roomId, userId]);
+  }, [roomId, socket, userId]);
 
   const sendMessage = (content: string) => {
-    if (!socketRef.current || !content.trim()) return;
-    socketRef.current.emit("send_message", { roomId, content });
+    if (!socket?.connected || !content.trim()) return;
+    socket.emit("send_message", { roomId, content });
   };
 
   const setTyping = (typing: boolean) => {
-    socketRef.current?.emit("typing", { roomId, isTyping: typing });
+    socket?.emit("typing", { roomId, isTyping: typing });
   };
 
   return { messages, sendMessage, isTyping, setTyping };

@@ -135,15 +135,31 @@ model Message {
   roomId    Int
   senderId  Int
   content   String
+  isRead    Boolean  @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   room      ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
   sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  attachments MessageAttachment[]
 
   @@index([roomId])
   @@index([senderId])
+}
+
+model MessageAttachment {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  mediaUrl  String
+  publicId  String
+  width     Int?
+  height    Int?
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
 }
 
 // ------------------------------------------------------

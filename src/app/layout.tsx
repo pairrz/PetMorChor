@@ -1,4 +1,6 @@
 import ReactQueryProvider from "@/components/providers/ReactQueryProvider";
+import { SocketProvider } from "@/context/SocketContext";
+import { getSessionUser } from "@/lib/auth-guard";
 import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
@@ -35,15 +37,22 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // ดึง session ของผู้ใช้ที่ล็อกอินอยู่
+  const user = await getSessionUser();
+
   return (
     <html lang="th">
       <body className="antialiased">
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+        <ReactQueryProvider>
+          <SocketProvider userId={user?.id}>
+            {children}
+          </SocketProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

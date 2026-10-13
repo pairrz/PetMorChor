@@ -19,7 +19,7 @@ export function SocketProvider({
   userId,
 }: {
   children: React.ReactNode;
-  userId?: string;
+  userId?: number | string; // ปรับตรงนี้ให้รับได้ทั้ง number และ string
 }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -28,8 +28,9 @@ export function SocketProvider({
     if (!userId) return;
 
     const socketInstance = io(process.env.NEXT_PUBLIC_WS_URL || "http://localhost:4000", {
-      auth: { userId },
+      auth: { userId: Number(userId) }, // แปลงเป็น number ส่งไปให้ server
       reconnectionAttempts: 5,
+      withCredentials: true,
     });
 
     socketInstance.on("connect", () => {
@@ -40,10 +41,19 @@ export function SocketProvider({
       setIsConnected(false);
     });
 
+    socketInstance.on("connect_error", (error) => {
+      console.error("Chat socket connection failed:", error.message);
+      setIsConnected(false);
+    });
+
+    // The socket instance is created by this effect and exposed to consumers.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSocket(socketInstance);
 
     return () => {
       socketInstance.disconnect();
+      setSocket(null);
+      setIsConnected(false);
     };
   }, [userId]);
 

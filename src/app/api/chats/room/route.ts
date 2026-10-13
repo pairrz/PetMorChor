@@ -32,6 +32,16 @@ export async function GET(req: NextRequest) {
           take: 1,
           orderBy: { createdAt: "desc" }, // แสดงข้อความล่าสุดใน Inbox
         },
+        _count: {
+          select: {
+            messages: {
+              where: {
+                senderId: { not: user.id },
+                isRead: false,
+              },
+            },
+          },
+        },
       },
       orderBy: { updatedAt: "desc" },
     });

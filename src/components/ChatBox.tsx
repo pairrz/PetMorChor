@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { io, Socket } from "socket.io-client";
+import { useSocket } from "@/context/SocketContext";
 
 interface MessageItem {
   id: number;
@@ -37,14 +37,14 @@ export default function ChatBox({
   const queryClient = useQueryClient();
   const [inputText, setInputText] = useState("");
   const [status, setStatus] = useState(listingStatus);
-  const socketRef = useRef<Socket | null>(null);
+  const { socket } = useSocket();
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // 1. ดึงประวัติข้อความเดิมด้วย TanStack Query[cite: 4, 8]
   const { data: messages = [], isLoading } = useQuery<MessageItem[]>({
     queryKey: ["chat-messages", roomId],
     queryFn: async () => {
-      const res = await axios.get(`/api/chats/rooms/${roomId}/messages`);
+      const res = await axios.get(`/api/chats/room/${roomId}/message`);
       return res.data.data;
     },
     staleTime: 1000 * 30, // แคชข้อความไว้ 30 วินาที[cite: 1, 8]
@@ -52,18 +52,13 @@ export default function ChatBox({
 
   // 2. การเชื่อมต่อ WebSocket (Socket.io) แบบ Real-time[cite: 8, 9]
   useEffect(() => {
-    // กำหนด URL หรือ path ที่ตั้งค่า Socket Server ไว้
-    const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL || "", {
-      path: "/api/socket",
-      addTrailingSlash: false,
-    });
-    socketRef.current = socket;
+    if (!socket) return;
 
     // เข้าร่วมห้องแชทเฉพาะของประกาศตัวนี้
     socket.emit("join_room", { roomId });
 
     // ดักรับข้อความใหม่ที่ Broadcast เข้ามา[cite: 8]
-    socket.on("receive_message", (newMsg: MessageItem) => {
+    const handleNewMessage = (newMsg: MessageItem) => {
       // อัปเดตข้อมูลใน Cache ของ TanStack Query ทันทีโดยไม่ต้อง Re-fetch ใหม่ทั้งก้อน[cite: 8]
       queryClient.setQueryData<MessageItem[]>(["chat-messages", roomId], (old) => {
         if (!old) return [newMsg];
@@ -71,14 +66,15 @@ export default function ChatBox({
         if (old.some((m) => m.id === newMsg.id)) return old;
         return [...old, newMsg];
       });
-    });
+    };
+    socket.on("new_message", handleNewMessage);
 
     // Clean-up connection เมื่อ Component Unmount เพื่อไม่ให้กิน connection ค้างไว้
     return () => {
       socket.emit("leave_room", { roomId });
-      socket.disconnect();
+      socket.off("new_message", handleNewMessage);
     };
-  }, [roomId, queryClient]);
+  }, [roomId, queryClient, socket]);
 
   // เลื่อนหน้าต่างลงล่างสุดอัตโนมัติเมื่อมีข้อความใหม่
   useEffect(() => {
@@ -87,19 +83,22 @@ export default function ChatBox({
 
   // 3. Mutation สำหรับส่งข้อความ
   const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const res = await axios.post(`/api/chats/rooms/${roomId}/messages`, { content });
-      return res.data.data;
-    },
-    onSuccess: (newMsg: MessageItem) => {
-      setInputText("");
-      // ส่ง Event กระจายผ่าน Socket ไปยังคู่สนทนา[cite: 8]
-      socketRef.current?.emit("send_message", { roomId, message: newMsg });
-      // อัปเดต Cache ฝั่งตนเอง
-      queryClient.setQueryData<MessageItem[]>(["chat-messages", roomId], (old) =>
-        old ? [...old, newMsg] : [newMsg]
-      );
-    },
+    mutationFn: (content: string) =>
+      new Promise<void>((resolve, reject) => {
+        if (!socket?.connected) {
+          reject(new Error("ยังไม่ได้เชื่อมต่อระบบแชท"));
+          return;
+        }
+        socket.emit(
+          "send_message",
+          { roomId, content },
+          (result: { ok?: boolean; message?: string }) => {
+            if (result?.ok) resolve();
+            else reject(new Error(result?.message ?? "ส่งข้อความไม่สำเร็จ"));
+          },
+        );
+      }),
+    onSuccess: () => setInputText(""),
   });
 
   // 4. Mutation สำหรับเจ้าของกดเปลี่ยนสถานะเป็น "มีคนรับเลี้ยงแล้ว"

@@ -1,12 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSocket } from "@/context/SocketContext";
+import { useImageUpload, type UploadedImage } from "@/hooks/useImageUpload";
 import {
   ArrowLeft,
   ArrowUpRight,
   Check,
+  Image as ImageIcon,
   LoaderCircle,
   MessageCircle,
   PawPrint,
@@ -25,7 +36,14 @@ type ChatMessage = {
   content: string;
   senderId: number;
   createdAt: string;
-  sender: { id: number; name: string };
+  sender: { id: number; name: string; image?: string | null };
+  attachments?: {
+    id: number;
+    mediaUrl: string;
+    publicId: string;
+    width?: number | null;
+    height?: number | null;
+  }[];
 };
 
 type ChatRoom = {
@@ -40,6 +58,7 @@ type ChatRoom = {
     user: { id: number; name: string };
   }[];
   messages: { content: string; createdAt: string; senderId: number }[];
+  _count: { messages: number };
   updatedAt: string;
 };
 
@@ -78,15 +97,27 @@ export default function ChatInbox() {
   const [search, setSearch] = useState("");
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
+  const [attachments, setAttachments] = useState<UploadedImage[]>([]);
   const [showConversation, setShowConversation] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { socket } = useSocket();
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const imageUpload = useImageUpload("chat");
 
+  const searchParams = useSearchParams();
+  const queryRoomId = searchParams.get("roomId");
+  const requestedRoomId = queryRoomId ? Number(queryRoomId) : null;
+  const activeRoomId = selectedRoomId ?? requestedRoomId;
+  // 1. ดึง Session ผู้ใช้
   const sessionQuery = useQuery<SessionResponse>({
     queryKey: ["chat-session"],
     queryFn: async () => readJson(await fetch("/api/auth/me")),
   });
   const currentUser = sessionQuery.data?.user;
 
+  // 2. ดึงรายการห้อง
   const roomsQuery = useQuery<ChatRoom[]>({
     queryKey: ["chat-rooms", currentUser?.id],
     enabled: Boolean(currentUser),
@@ -96,16 +127,17 @@ export default function ChatInbox() {
       );
       return result.data;
     },
-    refetchInterval: 10_000,
   });
   const rooms = roomsQuery.data ?? emptyRooms;
 
   const selectedRoom =
-    rooms.find((room) => room.id === selectedRoomId) ?? rooms[0] ?? null;
+    rooms.find((room) => room.id === activeRoomId) ?? rooms[0] ?? null;
+
   const otherParticipant = selectedRoom?.participants.find(
     (participant) => participant.user.id !== currentUser?.id,
   )?.user;
 
+  // 3. ดึงประวัติข้อความของห้องที่เลือก
   const messagesQuery = useQuery<ChatMessage[]>({
     queryKey: ["chat-room-messages", selectedRoom?.id],
     enabled: Boolean(currentUser && selectedRoom),
@@ -115,9 +147,114 @@ export default function ChatInbox() {
       );
       return result.data;
     },
-    refetchInterval: 4_000,
   });
   const messages = messagesQuery.data ?? emptyMessages;
+
+  // 4. Join Room, Leave Room และรับ new_message ผ่าน WebSocket
+  useEffect(() => {
+    const currentRoomId = selectedRoom?.id;
+
+    if (!currentRoomId) return;
+
+    const markRoomAsRead = () => {
+      socket?.emit("mark_room_as_read", { roomId: currentRoomId });
+      return fetch(`/api/chats/room/${currentRoomId}/read`, { method: "PUT" })
+        .then(async (response) => {
+          if (!response.ok) {
+            const data = await response.json().catch(() => null);
+            throw new Error(
+              data?.message ?? "ไม่สามารถอัปเดตสถานะการอ่านได้",
+            );
+          }
+          queryClient.setQueryData<ChatRoom[]>(
+            ["chat-rooms", currentUser?.id],
+            (currentRooms = []) =>
+              currentRooms.map((room) =>
+                room.id === currentRoomId
+                  ? { ...room, _count: { messages: 0 } }
+                  : room,
+              ),
+          );
+          window.dispatchEvent(new Event("chat-unread-refresh"));
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to mark chat room as read:", error);
+        });
+    };
+
+    void markRoomAsRead();
+
+    if (!socket) return;
+
+    socket.emit("join_room", { roomId: currentRoomId });
+
+    const handleNewMessage = (newMessage: ChatMessage) => {
+      // 5.1 เพิ่มข้อความใหม่เข้าแคชของห้องที่เปิดอยู่
+      queryClient.setQueryData<ChatMessage[]>(
+        ["chat-room-messages", currentRoomId],
+        (prev = []) => {
+          if (prev.some((msg) => msg.id === newMessage.id)) return prev;
+          return [...prev, newMessage];
+        },
+      );
+
+      // 5.2 อัปเดตรายการห้องและ preview ด้านซ้ายมือ
+      queryClient.setQueryData<ChatRoom[]>(
+        ["chat-rooms", currentUser?.id],
+        (prevRooms = []) => {
+          return prevRooms
+            .map((r) => {
+            if (r.id === currentRoomId) {
+              return {
+                ...r,
+                _count: { messages: 0 },
+                updatedAt: newMessage.createdAt,
+                messages: [
+                  {
+                    content: newMessage.content,
+                    createdAt: newMessage.createdAt,
+                    senderId: newMessage.senderId,
+                  },
+                ],
+              };
+            }
+            return r;
+            })
+            .sort(
+              (a, b) =>
+                new Date(b.updatedAt).getTime() -
+                new Date(a.updatedAt).getTime(),
+            );
+        },
+      );
+
+      if (newMessage.senderId !== currentUser?.id) {
+        void markRoomAsRead();
+      }
+
+      setIsSending(false);
+    };
+
+    socket.on("new_message", handleNewMessage);
+    const handleSocketError = (error: { message?: string }) => {
+      setIsSending(false);
+      alert(error.message ?? "เกิดข้อผิดพลาดในการรับส่งข้อมูล");
+    };
+    const handleOtherRoomMessage = () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["chat-rooms", currentUser?.id],
+      });
+    };
+    socket.on("error", handleSocketError);
+    socket.on("unread_badge_increment", handleOtherRoomMessage);
+
+    return () => {
+      socket.emit("leave_room", { roomId: currentRoomId });
+      socket.off("new_message", handleNewMessage);
+      socket.off("error", handleSocketError);
+      socket.off("unread_badge_increment", handleOtherRoomMessage);
+    };
+  }, [socket, selectedRoom?.id, currentUser?.id, queryClient]);
 
   const filteredRooms = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
@@ -137,35 +274,59 @@ export default function ChatInbox() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, selectedRoom?.id]);
 
-  const sendMutation = useMutation({
-    mutationFn: async (content: string) => {
-      const result = await readJson<{ data: ChatMessage }>(
-        await fetch(`/api/chats/room/${selectedRoom?.id}/message`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ content }),
-        }),
-      );
-      return result.data;
-    },
-    onSuccess: (message) => {
-      setDraft("");
-      queryClient.setQueryData<ChatMessage[]>(
-        ["chat-room-messages", selectedRoom?.id],
-        (current) =>
-          current?.some((item) => item.id === message.id)
-            ? current
-            : [...(current ?? []), message],
-      );
-      queryClient.invalidateQueries({ queryKey: ["chat-rooms"] });
-    },
-  });
-
+  // 5. ส่งข้อความผ่าน Socket
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const content = draft.trim();
-    if (!content || sendMutation.isPending || !selectedRoom) return;
-    sendMutation.mutate(content);
+
+    if (
+      (!content && attachments.length === 0) ||
+      !selectedRoom ||
+      !socket?.connected ||
+      isSending
+    ) return;
+
+    setIsSending(true);
+    socket.emit("send_message", {
+      roomId: selectedRoom.id,
+      content,
+      attachments: attachments.map((attachment) => ({
+        mediaUrl: attachment.url,
+        publicId: attachment.publicId,
+        width: attachment.width,
+        height: attachment.height,
+      })),
+    }, (result: { ok?: boolean; message?: string }) => {
+      if (!result?.ok) {
+        setIsSending(false);
+        alert(result?.message ?? "ไม่สามารถส่งข้อความได้");
+        return;
+      }
+      setDraft("");
+      setAttachments([]);
+    });
+  }
+
+  async function handleImageChange(
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const files = Array.from(event.target.files ?? []);
+    event.target.value = "";
+    if (files.length === 0) return;
+
+    const remaining = 4 - attachments.length;
+    if (files.length > remaining) {
+      alert("ส่งรูปได้ไม่เกิน 4 รูปต่อข้อความ");
+    }
+
+    try {
+      const uploaded = await Promise.all(
+        files.slice(0, remaining).map((file) => imageUpload.mutateAsync(file)),
+      );
+      setAttachments((current) => [...current, ...uploaded]);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "อัปโหลดรูปไม่สำเร็จ");
+    }
   }
 
   if (sessionQuery.isPending) {
@@ -208,7 +369,11 @@ export default function ChatInbox() {
   return (
     <section
       className={styles.inbox}
-      data-conversation-open={showConversation && selectedRoom ? "true" : "false"}
+      data-conversation-open={
+        (showConversation || Boolean(requestedRoomId)) && selectedRoom
+          ? "true"
+          : "false"
+      }
       aria-label="กล่องข้อความ"
     >
       <aside className={styles.sidebar}>
@@ -267,12 +432,26 @@ export default function ChatInbox() {
 
               return (
                 <button
-                  className={`${styles.room} ${active ? styles.activeRoom : ""}`}
+                  className={`${styles.room} ${
+                    active ? styles.activeRoom : ""
+                  } ${
+                    room._count.messages > 0 ? styles.unreadRoom : ""
+                  }`}
                   type="button"
                   key={room.id}
                   onClick={() => {
                     setSelectedRoomId(room.id);
                     setShowConversation(true);
+                    queryClient.setQueryData<ChatRoom[]>(
+                      ["chat-rooms", currentUser.id],
+                      (currentRooms = []) =>
+                        currentRooms.map((currentRoom) =>
+                          currentRoom.id === room.id
+                            ? { ...currentRoom, _count: { messages: 0 } }
+                            : currentRoom,
+                        ),
+                    );
+                    router.replace("/chat", { scroll: false });
                   }}
                   aria-current={active ? "true" : undefined}
                 >
@@ -281,7 +460,22 @@ export default function ChatInbox() {
                   </span>
                   <span className={styles.roomDetails}>
                     <span className={styles.roomName}>
-                      <strong>{person?.name ?? "สมาชิก"}</strong>
+                      <strong>
+                        {person?.name ?? "สมาชิก"}
+                        {room._count.messages > 0 && (
+                          <>
+                            <span
+                              className={styles.roomUnreadDot}
+                              aria-hidden="true"
+                            />
+                            <span className={styles.roomUnreadCount}>
+                              {room._count.messages > 99
+                                ? "99+"
+                                : room._count.messages}
+                            </span>
+                          </>
+                        )}
+                      </strong>
                       <time>{latestMessage ? formatTime(latestMessage.createdAt) : ""}</time>
                     </span>
                     <span className={styles.roomListing}>
@@ -289,7 +483,9 @@ export default function ChatInbox() {
                       {room.listing.title}
                     </span>
                     <span className={styles.preview}>
-                      {latestMessage?.content ?? "เริ่มต้นบทสนทนา"}
+                      {room._count.messages > 0 && !latestMessage?.content
+                        ? "มีรูปภาพใหม่"
+                        : latestMessage?.content ?? "เริ่มต้นบทสนทนา"}
                     </span>
                   </span>
                 </button>
@@ -305,7 +501,11 @@ export default function ChatInbox() {
             <button
               className={styles.mobileBack}
               type="button"
-              onClick={() => setShowConversation(false)}
+              onClick={() => {
+                setShowConversation(false);
+                setSelectedRoomId(null);
+                router.replace("/chat", { scroll: false });
+              }}
               aria-label="กลับไปรายการแชท"
             >
               <ArrowLeft size={20} />
@@ -394,7 +594,27 @@ export default function ChatInbox() {
                           </span>
                         )}
                         <div className={styles.messageContent}>
-                          <p className={styles.bubble}>{message.content}</p>
+                          {message.attachments && message.attachments.length > 0 && (
+                            <div className={styles.messageImages}>
+                              {message.attachments.map((attachment) => (
+                                <a
+                                  href={attachment.mediaUrl}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  key={attachment.id}
+                                >
+                                  <img
+                                    src={attachment.mediaUrl}
+                                    alt="รูปภาพในข้อความ"
+                                    loading="lazy"
+                                  />
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                          {message.content && (
+                            <p className={styles.bubble}>{message.content}</p>
+                          )}
                           <time>
                             {formatTime(message.createdAt)}
                             {isMine && <Check size={13} aria-label="ส่งแล้ว" />}
@@ -409,12 +629,24 @@ export default function ChatInbox() {
             )}
           </div>
 
-          {sendMutation.isError && (
-            <p className={styles.sendError} role="alert">
-              {sendMutation.error.message}
-            </p>
-          )}
           <form className={styles.composer} onSubmit={handleSubmit}>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              hidden
+              onChange={handleImageChange}
+            />
+            <button
+              type="button"
+              onClick={() => imageInputRef.current?.click()}
+              disabled={isSending || imageUpload.isPending || attachments.length >= 4}
+              aria-label="แนบรูปภาพ"
+              title="แนบรูปภาพ"
+            >
+              <ImageIcon size={17} />
+            </button>
             <textarea
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
@@ -428,14 +660,14 @@ export default function ChatInbox() {
               aria-label="พิมพ์ข้อความ"
               maxLength={1000}
               rows={1}
-              disabled={sendMutation.isPending}
+              disabled={isSending || imageUpload.isPending}
             />
             <button
               type="submit"
-              disabled={!draft.trim() || sendMutation.isPending}
+              disabled={(!draft.trim() && attachments.length === 0) || isSending || imageUpload.isPending}
               aria-label="ส่งข้อความ"
             >
-              {sendMutation.isPending ? (
+              {isSending ? (
                 <LoaderCircle className={styles.spinner} size={18} />
               ) : (
                 <Send size={17} />

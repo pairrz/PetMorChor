@@ -17,12 +17,19 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { roomId } = await params;
+    const { roomId: roomIdParam } = await params;
+    const roomId = Number(roomIdParam);
+    if (!Number.isInteger(roomId) || roomId <= 0) {
+      return NextResponse.json(
+        { success: false, message: "Invalid Room ID" },
+        { status: 400 },
+      );
+    }
 
     // 1. ตรวจสอบว่าผู้ใช้อยู่ในห้องแชทนี้จริงหรือไม่
     const participant = await prisma.chatParticipant.findFirst({
       where: {
-        chatRoomId: roomId,
+        roomId,
         userId: user.id,
       },
       select: { id: true },
@@ -35,40 +42,20 @@ export async function PUT(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const now = new Date();
-
-    // 2. อัปเดตสถานะอ่านแล้ว:
-    // - มาร์กข้อความของอีกฝ่ายที่ยังไม่ได้อ่านให้เป็น isRead: true
-    // - บันทึกเวลา lastReadAt ของตัวผู้ใช้เอง
-    const [messagesUpdate, participantUpdate] = await prisma.$transaction([
-      prisma.message.updateMany({
-        where: {
-          chatRoomId: roomId,
-          senderId: { not: user.id }, // อัปเดตเฉพาะข้อความที่คนอื่นส่งมา
-          isRead: false,
-        },
-        data: {
-          isRead: true,
-        },
-      }),
-      prisma.chatParticipant.update({
-        where: {
-          id: participant.id,
-        },
-        data: {
-          lastReadAt: now,
-          // หากใน schema มีฟิลด์ unreadCount สามารถ reset เป็น 0 ได้ด้วย:
-          // unreadCount: 0,
-        },
-      }),
-    ]);
+    const messagesUpdate = await prisma.message.updateMany({
+      where: {
+        roomId,
+        senderId: { not: user.id },
+        isRead: false,
+      },
+      data: { isRead: true },
+    });
 
     return NextResponse.json(
       {
         success: true,
         data: {
           markedCount: messagesUpdate.count,
-          lastReadAt: now,
         },
       },
       { status: 200 }

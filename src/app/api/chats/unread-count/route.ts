@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     // วิธีที่ 1 (แม่นยำที่สุด): นับ Message ที่อยู่ในห้องของผู้ใช้ โดยที่ผู้ใช้ไม่ได้เป็นคนส่ง และยังไม่ได้เปิดอ่าน
     const totalUnread = await prisma.message.count({
       where: {
-        chatRoom: {
+        room: {
           participants: {
             some: {
               userId: user.id,

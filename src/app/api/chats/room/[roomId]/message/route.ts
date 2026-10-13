@@ -4,7 +4,7 @@ import { getSessionUser } from "@/lib/auth-guard";
 import { z } from "zod";
 
 const querySchema = z.object({
-  cursor: z.string().optional(), // id ของข้อความสุดท้ายที่ฝั่ง client มีอยู่
+  cursor: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(30),
 });
 
@@ -12,7 +12,6 @@ interface RouteParams {
   params: Promise<{ roomId: string }>;
 }
 
-// GET /api/chats/rooms/[roomId]/messages?limit=30&cursor=cm...
 export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const user = await getSessionUser(req);
@@ -23,12 +22,19 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const { roomId } = await params;
+    const { roomId: roomIdParam } = await params;
+    const roomId = Number(roomIdParam);
+    if (!Number.isInteger(roomId) || roomId <= 0) {
+      return NextResponse.json(
+        { success: false, message: "Invalid Room ID" },
+        { status: 400 },
+      );
+    }
 
     // 1. ตรวจสอบสิทธิ์ว่า user นี้เป็น participant ของห้องนี้จริงหรือไม่
     const isMember = await prisma.chatParticipant.findFirst({
       where: {
-        chatRoomId: roomId,
+        roomId,
         userId: user.id,
       },
       select: { id: true },
@@ -57,15 +63,14 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
     const { cursor, limit } = queryValidation.data;
 
-    // 3. ดึงข้อความย้อนหลังจากใหม่ไปเก่า (desc)
     const messages = await prisma.message.findMany({
       where: {
-        chatRoomId: roomId,
+        roomId,
       },
-      take: limit + 1, // ดึงเกิน 1 ข้อความเพื่อเช็คว่ามีหน้าถัดไป (hasMore) หรือไม่
+      take: limit + 1,
       ...(cursor && {
-        cursor: { id: cursor },
-        skip: 1, // ข้าม id ตัวที่เป็น cursor
+        cursor: { id: cursor }, //  cursor เป็น number (Int) เรียบร้อยแล้ว
+        skip: 1,
       }),
       orderBy: {
         createdAt: "desc",
@@ -75,7 +80,15 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
           select: {
             id: true,
             name: true,
-            image: true,
+          },
+        },
+        attachments: {
+          select: {
+            id: true,
+            mediaUrl: true,
+            publicId: true,
+            width: true,
+            height: true,
           },
         },
       },
@@ -84,12 +97,12 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     // 4. ตรวจสอบ hasMore และหา nextCursor
     const hasMore = messages.length > limit;
     if (hasMore) {
-      messages.pop(); // ตัดไอเทมที่เกินออกมา
+      messages.pop();
     }
 
     const nextCursor = hasMore ? messages[messages.length - 1]?.id : null;
 
-    // 5. สลับลำดับกลับเป็นเก่าไปใหม่ (asc) เพื่อให้ Client render จากบนลงล่างได้ทันที
+    // 5. สลับลำดับกลับเป็นเก่าไปใหม่ (asc) เพื่อ render แชตจากบนลงล่าง
     const chronologicalMessages = [...messages].reverse();
 
     return NextResponse.json(
@@ -104,7 +117,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("GET /api/chats/rooms/[roomId]/messages error:", error);
+    console.error("GET messages error:", error);
     return NextResponse.json(
       { success: false, message: "Server error" },
       { status: 500 }
