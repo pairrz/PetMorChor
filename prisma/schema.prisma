@@ -105,12 +105,12 @@ model ListingMedia {
 
 model ChatRoom {
   id           Int               @id @default(autoincrement())
-  listingId    Int
+  listingId    Int?
 
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 
-  listing      Listing           @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listing      Listing?          @relation(fields: [listingId], references: [id], onDelete: Cascade)
   participants ChatParticipant[]
   messages     Message[]
 

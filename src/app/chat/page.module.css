@@ -323,6 +323,19 @@
   transition: border-color 150ms ease, background 150ms ease;
 }
 
+.privateChatLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #e9e2f5;
+  border-radius: 12px;
+  color: #6843bb;
+  background: #faf8ff;
+  font-size: 12px;
+  font-weight: 650;
+}
+
 .listingLink:hover {
   border-color: #d7c8f3;
   background: #fcfaff;

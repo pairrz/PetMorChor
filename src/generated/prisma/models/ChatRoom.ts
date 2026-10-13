@@ -179,7 +179,7 @@ export type ChatRoomGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 
 export type ChatRoomGroupByOutputType = {
   id: number
-  listingId: number
+  listingId: number | null
   createdAt: Date
   updatedAt: Date
   _count: ChatRoomCountAggregateOutputType | null
@@ -209,17 +209,17 @@ export type ChatRoomWhereInput = {
   OR?: Prisma.ChatRoomWhereInput[]
   NOT?: Prisma.ChatRoomWhereInput | Prisma.ChatRoomWhereInput[]
   id?: Prisma.IntFilter<"ChatRoom"> | number
-  listingId?: Prisma.IntFilter<"ChatRoom"> | number
+  listingId?: Prisma.IntNullableFilter<"ChatRoom"> | number | null
   createdAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
-  listing?: Prisma.XOR<Prisma.ListingScalarRelationFilter, Prisma.ListingWhereInput>
+  listing?: Prisma.XOR<Prisma.ListingNullableScalarRelationFilter, Prisma.ListingWhereInput> | null
   participants?: Prisma.ChatParticipantListRelationFilter
   messages?: Prisma.MessageListRelationFilter
 }
 
 export type ChatRoomOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  listingId?: Prisma.SortOrder
+  listingId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   listing?: Prisma.ListingOrderByWithRelationInput
@@ -232,17 +232,17 @@ export type ChatRoomWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.ChatRoomWhereInput | Prisma.ChatRoomWhereInput[]
   OR?: Prisma.ChatRoomWhereInput[]
   NOT?: Prisma.ChatRoomWhereInput | Prisma.ChatRoomWhereInput[]
-  listingId?: Prisma.IntFilter<"ChatRoom"> | number
+  listingId?: Prisma.IntNullableFilter<"ChatRoom"> | number | null
   createdAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
-  listing?: Prisma.XOR<Prisma.ListingScalarRelationFilter, Prisma.ListingWhereInput>
+  listing?: Prisma.XOR<Prisma.ListingNullableScalarRelationFilter, Prisma.ListingWhereInput> | null
   participants?: Prisma.ChatParticipantListRelationFilter
   messages?: Prisma.MessageListRelationFilter
 }, "id">
 
 export type ChatRoomOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  listingId?: Prisma.SortOrder
+  listingId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ChatRoomCountOrderByAggregateInput
@@ -257,7 +257,7 @@ export type ChatRoomScalarWhereWithAggregatesInput = {
   OR?: Prisma.ChatRoomScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ChatRoomScalarWhereWithAggregatesInput | Prisma.ChatRoomScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"ChatRoom"> | number
-  listingId?: Prisma.IntWithAggregatesFilter<"ChatRoom"> | number
+  listingId?: Prisma.IntNullableWithAggregatesFilter<"ChatRoom"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ChatRoom"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ChatRoom"> | Date | string
 }
@@ -265,14 +265,14 @@ export type ChatRoomScalarWhereWithAggregatesInput = {
 export type ChatRoomCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
-  listing: Prisma.ListingCreateNestedOneWithoutChatRoomsInput
+  listing?: Prisma.ListingCreateNestedOneWithoutChatRoomsInput
   participants?: Prisma.ChatParticipantCreateNestedManyWithoutRoomInput
   messages?: Prisma.MessageCreateNestedManyWithoutRoomInput
 }
 
 export type ChatRoomUncheckedCreateInput = {
   id?: number
-  listingId: number
+  listingId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participants?: Prisma.ChatParticipantUncheckedCreateNestedManyWithoutRoomInput
@@ -282,14 +282,14 @@ export type ChatRoomUncheckedCreateInput = {
 export type ChatRoomUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  listing?: Prisma.ListingUpdateOneRequiredWithoutChatRoomsNestedInput
+  listing?: Prisma.ListingUpdateOneWithoutChatRoomsNestedInput
   participants?: Prisma.ChatParticipantUpdateManyWithoutRoomNestedInput
   messages?: Prisma.MessageUpdateManyWithoutRoomNestedInput
 }
 
 export type ChatRoomUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  listingId?: Prisma.IntFieldUpdateOperationsInput | number
+  listingId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participants?: Prisma.ChatParticipantUncheckedUpdateManyWithoutRoomNestedInput
@@ -298,7 +298,7 @@ export type ChatRoomUncheckedUpdateInput = {
 
 export type ChatRoomCreateManyInput = {
   id?: number
-  listingId: number
+  listingId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -310,7 +310,7 @@ export type ChatRoomUpdateManyMutationInput = {
 
 export type ChatRoomUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  listingId?: Prisma.IntFieldUpdateOperationsInput | number
+  listingId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -477,7 +477,7 @@ export type ChatRoomScalarWhereInput = {
   OR?: Prisma.ChatRoomScalarWhereInput[]
   NOT?: Prisma.ChatRoomScalarWhereInput | Prisma.ChatRoomScalarWhereInput[]
   id?: Prisma.IntFilter<"ChatRoom"> | number
-  listingId?: Prisma.IntFilter<"ChatRoom"> | number
+  listingId?: Prisma.IntNullableFilter<"ChatRoom"> | number | null
   createdAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
 }
@@ -485,13 +485,13 @@ export type ChatRoomScalarWhereInput = {
 export type ChatRoomCreateWithoutParticipantsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
-  listing: Prisma.ListingCreateNestedOneWithoutChatRoomsInput
+  listing?: Prisma.ListingCreateNestedOneWithoutChatRoomsInput
   messages?: Prisma.MessageCreateNestedManyWithoutRoomInput
 }
 
 export type ChatRoomUncheckedCreateWithoutParticipantsInput = {
   id?: number
-  listingId: number
+  listingId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutRoomInput
@@ -516,13 +516,13 @@ export type ChatRoomUpdateToOneWithWhereWithoutParticipantsInput = {
 export type ChatRoomUpdateWithoutParticipantsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  listing?: Prisma.ListingUpdateOneRequiredWithoutChatRoomsNestedInput
+  listing?: Prisma.ListingUpdateOneWithoutChatRoomsNestedInput
   messages?: Prisma.MessageUpdateManyWithoutRoomNestedInput
 }
 
 export type ChatRoomUncheckedUpdateWithoutParticipantsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  listingId?: Prisma.IntFieldUpdateOperationsInput | number
+  listingId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   messages?: Prisma.MessageUncheckedUpdateManyWithoutRoomNestedInput
@@ -531,13 +531,13 @@ export type ChatRoomUncheckedUpdateWithoutParticipantsInput = {
 export type ChatRoomCreateWithoutMessagesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
-  listing: Prisma.ListingCreateNestedOneWithoutChatRoomsInput
+  listing?: Prisma.ListingCreateNestedOneWithoutChatRoomsInput
   participants?: Prisma.ChatParticipantCreateNestedManyWithoutRoomInput
 }
 
 export type ChatRoomUncheckedCreateWithoutMessagesInput = {
   id?: number
-  listingId: number
+  listingId?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
   participants?: Prisma.ChatParticipantUncheckedCreateNestedManyWithoutRoomInput
@@ -562,13 +562,13 @@ export type ChatRoomUpdateToOneWithWhereWithoutMessagesInput = {
 export type ChatRoomUpdateWithoutMessagesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  listing?: Prisma.ListingUpdateOneRequiredWithoutChatRoomsNestedInput
+  listing?: Prisma.ListingUpdateOneWithoutChatRoomsNestedInput
   participants?: Prisma.ChatParticipantUpdateManyWithoutRoomNestedInput
 }
 
 export type ChatRoomUncheckedUpdateWithoutMessagesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
-  listingId?: Prisma.IntFieldUpdateOperationsInput | number
+  listingId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   participants?: Prisma.ChatParticipantUncheckedUpdateManyWithoutRoomNestedInput
@@ -646,7 +646,7 @@ export type ChatRoomSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   listingId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
+  listing?: boolean | Prisma.ChatRoom$listingArgs<ExtArgs>
   participants?: boolean | Prisma.ChatRoom$participantsArgs<ExtArgs>
   messages?: boolean | Prisma.ChatRoom$messagesArgs<ExtArgs>
   _count?: boolean | Prisma.ChatRoomCountOutputTypeDefaultArgs<ExtArgs>
@@ -657,7 +657,7 @@ export type ChatRoomSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   listingId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
+  listing?: boolean | Prisma.ChatRoom$listingArgs<ExtArgs>
 }, ExtArgs["result"]["chatRoom"]>
 
 export type ChatRoomSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -665,7 +665,7 @@ export type ChatRoomSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   listingId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
+  listing?: boolean | Prisma.ChatRoom$listingArgs<ExtArgs>
 }, ExtArgs["result"]["chatRoom"]>
 
 export type ChatRoomSelectScalar = {
@@ -677,28 +677,28 @@ export type ChatRoomSelectScalar = {
 
 export type ChatRoomOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "listingId" | "createdAt" | "updatedAt", ExtArgs["result"]["chatRoom"]>
 export type ChatRoomInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
+  listing?: boolean | Prisma.ChatRoom$listingArgs<ExtArgs>
   participants?: boolean | Prisma.ChatRoom$participantsArgs<ExtArgs>
   messages?: boolean | Prisma.ChatRoom$messagesArgs<ExtArgs>
   _count?: boolean | Prisma.ChatRoomCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ChatRoomIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
+  listing?: boolean | Prisma.ChatRoom$listingArgs<ExtArgs>
 }
 export type ChatRoomIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  listing?: boolean | Prisma.ListingDefaultArgs<ExtArgs>
+  listing?: boolean | Prisma.ChatRoom$listingArgs<ExtArgs>
 }
 
 export type $ChatRoomPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ChatRoom"
   objects: {
-    listing: Prisma.$ListingPayload<ExtArgs>
+    listing: Prisma.$ListingPayload<ExtArgs> | null
     participants: Prisma.$ChatParticipantPayload<ExtArgs>[]
     messages: Prisma.$MessagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
-    listingId: number
+    listingId: number | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["chatRoom"]>
@@ -1095,7 +1095,7 @@ readonly fields: ChatRoomFieldRefs;
  */
 export interface Prisma__ChatRoomClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  listing<T extends Prisma.ListingDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ListingDefaultArgs<ExtArgs>>): Prisma.Prisma__ListingClient<runtime.Types.Result.GetResult<Prisma.$ListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  listing<T extends Prisma.ChatRoom$listingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChatRoom$listingArgs<ExtArgs>>): Prisma.Prisma__ListingClient<runtime.Types.Result.GetResult<Prisma.$ListingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   participants<T extends Prisma.ChatRoom$participantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChatRoom$participantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ChatParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messages<T extends Prisma.ChatRoom$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChatRoom$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -1529,6 +1529,25 @@ export type ChatRoomDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many ChatRooms to delete.
    */
   limit?: number
+}
+
+/**
+ * ChatRoom.listing
+ */
+export type ChatRoom$listingArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Listing
+   */
+  select?: Prisma.ListingSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Listing
+   */
+  omit?: Prisma.ListingOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ListingInclude<ExtArgs> | null
+  where?: Prisma.ListingWhereInput
 }
 
 /**

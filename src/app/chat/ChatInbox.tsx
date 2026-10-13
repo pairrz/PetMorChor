@@ -53,7 +53,7 @@ type ChatRoom = {
     title: string;
     status: "AVAILABLE" | "ADOPTED" | "HIDDEN";
     media: { mediaUrl: string }[];
-  };
+  } | null;
   participants: {
     user: { id: number; name: string };
   }[];
@@ -108,7 +108,8 @@ export default function ChatInbox() {
 
   const searchParams = useSearchParams();
   const queryRoomId = searchParams.get("roomId");
-  const requestedRoomId = queryRoomId ? Number(queryRoomId) : null;
+  const parsedRoomId = queryRoomId ? Number(queryRoomId) : NaN;
+  const requestedRoomId = Number.isInteger(parsedRoomId) ? parsedRoomId : null;
   const activeRoomId = selectedRoomId ?? requestedRoomId;
   // 1. ดึง Session ผู้ใช้
   const sessionQuery = useQuery<SessionResponse>({
@@ -130,8 +131,20 @@ export default function ChatInbox() {
   });
   const rooms = roomsQuery.data ?? emptyRooms;
 
+  useEffect(() => {
+    if (
+      requestedRoomId !== null &&
+      roomsQuery.isSuccess &&
+      !rooms.some((room) => room.id === requestedRoomId) &&
+      !roomsQuery.isFetching
+    ) {
+      void roomsQuery.refetch();
+    }
+  }, [requestedRoomId, rooms, roomsQuery]);
+
   const selectedRoom =
-    rooms.find((room) => room.id === activeRoomId) ?? rooms[0] ?? null;
+    rooms.find((room) => room.id === activeRoomId) ??
+    (requestedRoomId === null ? rooms[0] : null);
 
   const otherParticipant = selectedRoom?.participants.find(
     (participant) => participant.user.id !== currentUser?.id,
@@ -264,7 +277,7 @@ export default function ChatInbox() {
         room.participants.find(
           (participant) => participant.user.id !== currentUser?.id,
         )?.user.name ?? "";
-      return `${otherName} ${room.listing.title}`
+      return `${otherName}${room.listing ? ` ${room.listing.title}` : ""}`
         .toLocaleLowerCase()
         .includes(query);
     });
@@ -480,7 +493,7 @@ export default function ChatInbox() {
                     </span>
                     <span className={styles.roomListing}>
                       <PawPrint size={12} />
-                      {room.listing.title}
+                      {room.listing?.title ?? "ข้อความส่วนตัว"}
                     </span>
                     <span className={styles.preview}>
                       {room._count.messages > 0 && !latestMessage?.content
@@ -520,28 +533,35 @@ export default function ChatInbox() {
                 คุยเรื่องประกาศนี้
               </span>
             </div>
-            <Link
-              href={`/marketplace/${selectedRoom.listing.id}`}
-              className={styles.listingLink}
-              title="ดูประกาศ"
-            >
-              <span className={styles.listingImage}>
-                {selectedRoom.listing.media[0]?.mediaUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={selectedRoom.listing.media[0].mediaUrl}
-                    alt=""
-                  />
-                ) : (
-                  <PawPrint size={17} />
-                )}
-              </span>
-              <span className={styles.listingInfo}>
-                <small>ประกาศ</small>
-                <strong>{selectedRoom.listing.title}</strong>
-              </span>
-              <ArrowUpRight size={16} />
-            </Link>
+            {selectedRoom.listing ? (
+              <Link
+                href={`/marketplace/${selectedRoom.listing.id}`}
+                className={styles.listingLink}
+                title="ดูประกาศ"
+              >
+                <span className={styles.listingImage}>
+                  {selectedRoom.listing.media[0]?.mediaUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={selectedRoom.listing.media[0].mediaUrl}
+                      alt=""
+                    />
+                  ) : (
+                    <PawPrint size={17} />
+                  )}
+                </span>
+                <span className={styles.listingInfo}>
+                  <small>ประกาศ</small>
+                  <strong>{selectedRoom.listing.title}</strong>
+                </span>
+                <ArrowUpRight size={16} />
+              </Link>
+            ) : (
+              <div className={styles.privateChatLabel}>
+                <MessageCircle size={18} />
+                <span>ข้อความส่วนตัว</span>
+              </div>
+            )}
           </header>
 
           <div className={styles.messages} aria-live="polite">

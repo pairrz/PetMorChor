@@ -4,7 +4,10 @@ import { getSessionUser } from "@/lib/auth-guard";
 import { z } from "zod";
 
 const createRoomSchema = z.object({
-  listingId: z.coerce.number().int().positive("รหัสประกาศไม่ถูกต้อง"),
+  listingId: z.coerce.number().int().positive("รหัสประกาศไม่ถูกต้อง").optional(),
+  userId: z.coerce.number().int().positive("รหัสผู้ใช้ไม่ถูกต้อง").optional(),
+}).refine((value) => value.listingId !== undefined || value.userId !== undefined, {
+  message: "ต้องระบุประกาศหรือผู้ใช้ปลายทาง",
 });
 
 // GET /api/chats/rooms - ดึงรายการห้องแชททั้งหมดของผู้ใช้ที่ล็อกอินอยู่
@@ -70,7 +73,69 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { listingId } = validation.data;
+    const { listingId, userId: targetUserId } = validation.data;
+
+    if (targetUserId !== undefined) {
+      if (targetUserId === user.id) {
+        return NextResponse.json(
+          { success: false, message: "ไม่สามารถสร้างห้องแชทกับตัวเองได้" },
+          { status: 400 },
+        );
+      }
+
+      const targetUser = await prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { id: true },
+      });
+      if (!targetUser) {
+        return NextResponse.json(
+          { success: false, message: "ไม่พบผู้ใช้นี้" },
+          { status: 404 },
+        );
+      }
+
+      const existingRoom = await prisma.chatRoom.findFirst({
+        where: {
+          listingId: null,
+          participants: {
+            every: { userId: { in: [user.id, targetUserId] } },
+            none: { userId: { notIn: [user.id, targetUserId] } },
+          },
+          AND: [
+            { participants: { some: { userId: user.id } } },
+            { participants: { some: { userId: targetUserId } } },
+          ],
+        },
+        include: {
+          listing: { select: { id: true, title: true, status: true, media: { take: 1 } } },
+          participants: { include: { user: { select: { id: true, name: true } } } },
+        },
+      });
+
+      const room = existingRoom
+        ? await prisma.chatRoom.update({
+            where: { id: existingRoom.id },
+            data: { updatedAt: new Date() },
+            include: {
+              listing: { select: { id: true, title: true, status: true, media: { take: 1 } } },
+              participants: { include: { user: { select: { id: true, name: true } } } },
+            },
+          })
+        : await prisma.chatRoom.create({
+            data: {
+              listingId: null,
+              participants: {
+                create: [{ userId: user.id }, { userId: targetUserId }],
+              },
+            },
+            include: {
+              listing: { select: { id: true, title: true, status: true, media: { take: 1 } } },
+              participants: { include: { user: { select: { id: true, name: true } } } },
+            },
+          });
+
+      return NextResponse.json({ success: true, data: room }, { status: 200 });
+    }
 
     const listing = await prisma.listing.findUnique({
       where: { id: listingId },

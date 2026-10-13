@@ -72,6 +72,27 @@
   font-size: 14px;
 }
 
+.authorButton {
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  color: #302b42;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.authorButton:hover:not(:disabled) {
+  color: #6843bb;
+  text-decoration: underline;
+}
+
+.authorButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .author time {
   color: #888497;
   font-size: 12px;

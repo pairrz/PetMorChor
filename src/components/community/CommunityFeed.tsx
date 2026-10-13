@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import styles from "@/app/community/page.module.css";
 
@@ -31,6 +32,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export function CommunityFeed({ posts }: { posts: Post[] }) {
+  const router = useRouter();
   const [items, setItems] = useState(posts);
   const [openComments, setOpenComments] = useState<number | null>(null);
   const [comments, setComments] = useState<Record<number, Comment[]>>({});
@@ -38,6 +40,30 @@ export function CommunityFeed({ posts }: { posts: Post[] }) {
   const [loadingComments, setLoadingComments] = useState<number | null>(null);
   const [submittingComment, setSubmittingComment] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const [openingChatUserId, setOpeningChatUserId] = useState<number | null>(null);
+
+  async function openChat(userId: number) {
+    setOpeningChatUserId(userId);
+    setError("");
+    try {
+      const response = await fetch("/api/chats/room", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ userId }),
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        setError(result.message ?? "ไม่สามารถเปิดห้องแชทได้");
+        return;
+      }
+      router.push(`/chat?roomId=${result.data.id}`);
+    } catch {
+      setError("ไม่สามารถเชื่อมต่อระบบแชทได้");
+    } finally {
+      setOpeningChatUserId(null);
+    }
+  }
 
   async function toggleLike(postId: number) {
     setError("");
@@ -129,7 +155,15 @@ export function CommunityFeed({ posts }: { posts: Post[] }) {
               {post.user.name.slice(0, 1).toUpperCase()}
             </div>
             <div className={styles.author}>
-              <strong>{post.user.name}</strong>
+              <button
+                type="button"
+                className={styles.authorButton}
+                onClick={() => void openChat(post.user.id)}
+                disabled={openingChatUserId === post.user.id}
+                title="กดเพื่อเริ่มแชท"
+              >
+                {openingChatUserId === post.user.id ? "กำลังเปิดแชท..." : post.user.name}
+              </button>
               <time dateTime={post.createdAt}>
                 {new Date(post.createdAt).toLocaleDateString("th-TH", {
                   year: "numeric",
