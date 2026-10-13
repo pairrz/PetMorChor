@@ -194,68 +194,94 @@
   padding: 20px;
   place-items: center;
   background: rgb(27 22 43 / 45%);
+  backdrop-filter: blur(3px);
+  animation: fadeIn 160ms ease both;
 }
 
 .placeDetails {
   position: relative;
   width: min(100%, 460px);
+  max-height: calc(100vh - 40px);
+  box-sizing: border-box;
   padding: 28px;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 20px 60px rgb(27 22 43 / 25%);
+  overflow-y: auto;
+  border: 1px solid #f1ebfa;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(255 226 140 / 22%), transparent 38%),
+    radial-gradient(circle at 0% 100%, rgb(150 190 255 / 18%), transparent 40%),
+    #fffdfb;
+  box-shadow: 0 24px 60px rgb(27 22 43 / 25%);
+  animation: popIn 200ms ease both;
 }
 
 .modalClose {
   position: absolute;
-  top: 10px;
+  top: 14px;
   right: 14px;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border: 0;
   border-radius: 50%;
   background: #f4f1f8;
   color: #555064;
   cursor: pointer;
-  font-size: 24px;
+  font-size: 22px;
   line-height: 1;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.modalClose:hover {
+  background: #e9e1f7;
+  color: #2d2540;
 }
 
 .detailsIcon {
   display: grid;
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   place-items: center;
-  border-radius: 14px;
-  background: #f3effb;
-  font-size: 24px;
+  border-radius: 38%;
+  background: linear-gradient(145deg, #fff1e6, #ffe3ef);
+  box-shadow: 0 8px 20px rgb(255 140 120 / 16%);
+  font-size: 26px;
+  transform: rotate(-6deg);
 }
 
 .detailsType {
-  margin: 16px 0 5px;
-  color: #7652c8;
+  display: inline-block;
+  margin: 18px 0 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  color: #6238b8;
+  background: #efe7ff;
   font-size: 12px;
   font-weight: 700;
 }
 
 .placeDetails h2 {
   margin: 0 0 20px;
+  padding-right: 24px;
   color: #29243a;
   font-size: 22px;
+  line-height: 1.4; /* ภาษาไทยต้องสูงพอ ไม่งั้นสระโดนตัด */
 }
 
 .detailsList {
   display: grid;
-  gap: 14px;
-  margin: 0 0 22px;
+  gap: 0;
+  margin: 0 0 24px;
 }
 
 .detailsList div {
   display: grid;
   gap: 4px;
+  padding: 14px 0;
+  border-top: 1px solid #efe9f7;
 }
 
 .detailsList dt {
-  color: #777488;
+  color: #8a839a;
   font-size: 12px;
   font-weight: 700;
 }
@@ -264,42 +290,71 @@
   margin: 0;
   color: #302b42;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
-.mapsButton {
-  display: block;
-  padding: 12px 16px;
-  border-radius: 10px;
-  background: #7652c8;
-  color: #fff;
-  font-size: 14px;
+.placeDetails a.mapsButton,
+.placeDetails a.mapsButton:visited {
+  display: flex;
+  min-height: 50px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 14px;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  background-color: #6d44c9;
+  box-shadow: 0 8px 20px rgb(94 51 184 / 28%);
+  font-size: 15px;
   font-weight: 700;
-  text-align: center;
   text-decoration: none;
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
-.mapsButton:hover {
-  background: #6843bb;
+.placeDetails a.mapsButton:hover,
+.placeDetails a.mapsButton:focus-visible {
+  transform: translateY(-1px);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  background-color: #5b33b0;
+  box-shadow: 0 12px 24px rgb(94 51 184 / 34%);
 }
 
-@media (max-width: 640px) {
-  .filters {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    padding-bottom: 4px;
+.placeDetails a.mapsButton:focus-visible {
+  outline: 2px solid #5b33b0;
+  outline-offset: 2px;
+}
+
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modalBackdrop,
+  .placeDetails {
+    animation: none;
   }
 
-  .filterButton {
-    flex: 0 0 auto;
-    font-size: 13px;
-  }
-
-  .map {
-    height: 360px;
-  }
-
-  .placeList {
-    grid-template-columns: 1fr;
+  .placeDetails a.mapsButton,
+  .modalClose {
+    transition: none;
   }
 }

@@ -5,45 +5,25 @@
 .container {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(240px, 0.85fr);
   align-items: center;
   gap: 32px;
   width: min(100%, 1200px);
-  min-height: 270px;
+  min-height: 230px;
   box-sizing: border-box;
   margin: 0 auto;
-  padding: 32px 56px;
+  padding: 28px 56px;
   overflow: hidden;
-  border: 1px solid #e3d4ff;
-  border-radius: 28px;
+  border: 1px solid #efe8fb;
+  border-radius: 24px;
+  /* พื้นขาวนวล + จุดสีพาสเทลหลายสีจาง ๆ */
   background:
-    radial-gradient(circle at 83% 20%, rgb(255 255 255 / 85%), transparent 27%),
-    linear-gradient(120deg, #f0e7ff 0%, #e9ddff 58%, #ffede2 100%);
-  box-shadow: 0 18px 50px rgb(80 43 145 / 13%);
-}
-
-.container::before,
-.container::after {
-  position: absolute;
-  border-radius: 50%;
-  content: "";
-  pointer-events: none;
-}
-
-.container::before {
-  top: -110px;
-  right: 20%;
-  width: 240px;
-  height: 240px;
-  background: rgb(255 255 255 / 30%);
-}
-
-.container::after {
-  right: -70px;
-  bottom: -150px;
-  width: 320px;
-  height: 320px;
-  background: rgb(255 139 94 / 18%);
+    radial-gradient(circle at 8% 0%, rgb(255 190 170 / 28%), transparent 38%),
+    radial-gradient(circle at 95% 10%, rgb(255 226 140 / 30%), transparent 36%),
+    radial-gradient(circle at 90% 100%, rgb(255 170 210 / 25%), transparent 42%),
+    radial-gradient(circle at 20% 100%, rgb(150 190 255 / 25%), transparent 45%),
+    #fffdfb;
+  box-shadow: 0 6px 24px rgb(80 43 145 / 6%);
 }
 
 .content,
@@ -56,29 +36,32 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #7041c9;
-  font-size: 12px;
-  font-weight: 750;
+  padding: 5px 12px;
+  border-radius: 999px;
+  color: #7a56c4;
+  background: rgb(122 86 196 / 10%);
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.12em;
 }
 
 .title {
-  margin: 10px 0;
-  color: #241b38;
-  font-size: clamp(30px, 3vw, 40px);
-  font-weight: 750;
-  letter-spacing: -0.04em;
-  line-height: 1.2;
+  margin: 14px 0 8px;
+  color: #2d2540;
+  font-size: clamp(26px, 2.6vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.35; /* ภาษาไทยต้องสูงพอ ไม่งั้นสระโดนตัด */
 }
 
 .title span {
-  color: #e56d4d;
+  color: #ef6f4f;
 }
 
 .description {
-  max-width: 520px;
+  max-width: 480px;
   margin: 0;
-  color: #554c68;
+  color: #6b6380;
   font-size: 15px;
   line-height: 1.7;
 }
@@ -93,61 +76,60 @@
 .primaryCta,
 .secondaryCta {
   display: inline-flex;
-  min-height: 44px;
+  min-height: 42px;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 0 18px;
-  border-radius: 12px;
+  gap: 8px;
+  padding: 0 20px;
+  border-radius: 999px;
   font-size: 14px;
   font-weight: 650;
   text-decoration: none;
   transition:
     transform 160ms ease,
-    box-shadow 160ms ease,
-    background-color 160ms ease;
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
+/* ปุ่มอ่อน ไม่แย่งความเด่นจากแบนเนอร์ */
 .primaryCta {
-  color: #fff;
-  background: linear-gradient(135deg, #7848d5, #5c32b8);
-  box-shadow: 0 8px 20px rgb(94 51 184 / 30%);
+  color: #5b33b0;
+  background: #efe7ff;
 }
 
 .primaryCta:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, #693ac5, #4e279f);
-  box-shadow: 0 12px 24px rgb(94 51 184 / 36%);
+  transform: translateY(-1px);
+  color: #fff;
+  background: #6d44c9;
 }
 
 .secondaryCta {
-  border: 1px solid #d7c7f0;
-  color: #49366f;
-  background: rgb(255 255 255 / 86%);
+  border: 1px solid #e4daf5;
+  color: #5b4a80;
+  background: transparent;
 }
 
 .secondaryCta:hover {
-  transform: translateY(-2px);
-  background: #fff;
+  transform: translateY(-1px);
+  background: #faf7ff;
 }
 
 .visual {
   display: grid;
-  min-height: 170px;
+  min-height: 160px;
   place-items: center;
 }
 
 .paw {
   display: grid;
-  width: 150px;
-  height: 150px;
+  width: 110px;
+  height: 110px;
   place-items: center;
-  border: 1px solid rgb(255 255 255 / 95%);
-  border-radius: 50%;
-  background: linear-gradient(145deg, #fff, #f0e5ff);
-  box-shadow: 0 24px 60px rgb(91 54 151 / 23%);
-  font-size: 68px;
-  transform: rotate(-12deg);
+  border-radius: 38%;
+  background: linear-gradient(145deg, #fff1e6, #ffe3ef);
+  box-shadow: 0 10px 24px rgb(255 140 120 / 18%);
+  font-size: 50px;
+  transform: rotate(-8deg);
 }
 
 .note {
@@ -155,35 +137,33 @@
   right: 0;
   bottom: 0;
   display: grid;
-  gap: 5px;
-  max-width: 230px;
-  padding: 13px 16px;
-  border: 1px solid rgb(255 255 255 / 95%);
-  border-radius: 16px;
-  background: rgb(255 255 255 / 94%);
-  box-shadow: 0 12px 32px rgb(55 42 80 / 15%);
+  gap: 4px;
+  max-width: 220px;
+  padding: 12px 15px;
+  border: 1px solid #f1ebfa;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 85%);
+  box-shadow: 0 6px 18px rgb(55 42 80 / 7%);
 }
 
 .note span {
-  color: #777087;
+  color: #8a839a;
   font-size: 12px;
 }
 
 .note strong {
-  color: #342644;
-  font-size: 14px;
+  color: #3a2d52;
+  font-size: 13px;
 }
 
 .tag {
   position: absolute;
-  top: 0;
-  left: 0;
-  padding: 9px 13px;
-  border: 1px solid rgb(255 255 255 / 95%);
+  top: 4px;
+  left: 4px;
+  padding: 7px 12px;
   border-radius: 999px;
-  color: #6238b8;
-  background: rgb(255 255 255 / 90%);
-  box-shadow: 0 8px 24px rgb(55 42 80 / 10%);
+  color: #b0527a;
+  background: #ffeaf3;
   font-size: 12px;
   font-weight: 650;
 }
@@ -195,14 +175,14 @@
 
   .container {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 8px;
     min-height: auto;
-    padding: 28px 24px 22px;
-    border-radius: 22px;
+    padding: 24px 22px 20px;
+    border-radius: 20px;
   }
 
   .title {
-    font-size: clamp(30px, 8vw, 38px);
+    font-size: clamp(24px, 7vw, 30px);
   }
 
   .description {
@@ -210,24 +190,18 @@
   }
 
   .visual {
-    min-height: 170px;
+    min-height: 120px;
   }
 
   .paw {
-    width: 130px;
-    height: 130px;
-    font-size: 58px;
+    width: 90px;
+    height: 90px;
+    font-size: 42px;
   }
 
+  /* ซ่อนการ์ดโน้ตบนมือถือ ให้การ์ดเตี้ยลง */
   .note {
-    right: 0;
-    bottom: 0;
-    max-width: 210px;
-    padding: 11px 13px;
-  }
-
-  .tag {
-    top: 0;
+    display: none;
   }
 }
 

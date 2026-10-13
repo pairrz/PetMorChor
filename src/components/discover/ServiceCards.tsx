@@ -1,4 +1,5 @@
 import { MapPin, ExternalLink } from "lucide-react";
+import styles from "./ServiceCards.module.css";
 
 type ServiceCardsProps = {
   items: any[];
@@ -6,50 +7,44 @@ type ServiceCardsProps = {
 
 export function ServiceCards({ items }: ServiceCardsProps) {
   return (
-    <div className="service-grid">
-      {items.map((place) => {
-        // เช็คว่ามีพิกัด lat/lon หรือไม่ ถ้ามีให้ใช้พิกัด ถ้าไม่มีให้ค้นหาด้วยชื่อและที่อยู่
+    <div className={styles.grid}>
+      {items.map((place, index) => {
         const lat = place.latitude ?? place.lat;
         const lon = place.longitude ?? place.lon;
 
         const query =
-          lat && lon
+          lat != null && lon != null
             ? `${lat},${lon}`
             : encodeURIComponent(`${place.name} ${place.address ?? ""}`.trim());
 
         const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${query}`;
 
         return (
-          <article className="service-card" key={place.id}>
-            <span className="service-icon">
-              <MapPin />
+          <article
+            className={styles.card}
+            data-tone={index % 4}
+            key={place.id}
+          >
+            <span className={styles.icon} aria-hidden="true">
+              <MapPin size={22} />
             </span>
 
-            <h3>{place.name}</h3>
+            <span className={styles.type}>
+              {place.placeType?.name ?? "Pet service"}
+            </span>
 
-            <p>{place.placeType?.name ?? "Pet service"}</p>
+            <h3 className={styles.name}>{place.name}</h3>
 
-            <span className="distance">{place.address}</span>
+            {place.address && <p className={styles.address}>{place.address}</p>}
 
-            {/* ปุ่มกดดูรายละเอียด / นำทางไปยัง Google Maps */}
             <a
               href={googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="map-link"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                marginTop: "8px",
-                fontSize: "0.875rem",
-                color: "#2563eb",
-                textDecoration: "none",
-                fontWeight: 500,
-              }}
+              className={styles.link}
             >
-              ดูรายละเอียดใน Google Maps
-              <ExternalLink size={14} />
+              ดูใน Google Maps
+              <ExternalLink size={14} aria-hidden="true" />
             </a>
           </article>
         );

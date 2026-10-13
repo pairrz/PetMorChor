@@ -13,6 +13,7 @@ const slides = [
     action: "ค้นหาสัตว์เลี้ยง",
     href: "/marketplace",
     decoration: "🐾",
+    theme: "sunrise",
   },
   {
     label: "หาบ้านให้น้อง",
@@ -22,6 +23,7 @@ const slides = [
     action: "ดูประกาศหาบ้าน",
     href: "/marketplace",
     decoration: "🏡",
+    theme: "ocean",
   },
   {
     label: "ชุมชนคนรักสัตว์",
@@ -31,6 +33,7 @@ const slides = [
     action: "เข้าสู่ชุมชน",
     href: "/community",
     decoration: "💛",
+    theme: "garden",
   },
 ];
 
@@ -51,13 +54,14 @@ export function BannerPromote() {
   }, []);
 
   return (
-    <section className={styles.banner} aria-label="แบนเนอร์ PetMorChor">
+    <section className={styles.banner} data-theme={slide.theme} aria-label="แบนเนอร์ PetMorChor">
+      <div className={styles.bg} aria-hidden="true" />
       <div className={styles.content} key={activeIndex}>
         <span className={styles.brand}>{slide.label}</span>
         <h2 className={styles.title}>
           {slide.title}
           <br />
-          {slide.subtitle}
+          <span className={styles.subtitle}>{slide.subtitle}</span>
         </h2>
         <p className={styles.description}>{slide.description}</p>
         <Link className={styles.cta} href={slide.href}>
@@ -65,9 +69,9 @@ export function BannerPromote() {
         </Link>
       </div>
 
-      <span className={styles.decoration} aria-hidden="true">
-        {slide.decoration}
-      </span>
+      <div className={styles.decoration} aria-hidden="true">
+        <span>{slide.decoration}</span>
+      </div>
 
       <button
         className={`${styles.arrow} ${styles.previous}`}
