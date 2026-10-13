@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
 
@@ -16,9 +17,18 @@ const userSelect = {
   role: true,
 };
 
-export async function getSessionUser(req: NextRequest): Promise<AuthenticatedUser | null> {
-  // 1. ตรวจสอบจาก Stateful Session (CPE OAuth) ผ่านคุกกี้ของ Request
-  const sessionToken = req.cookies.get("session_token")?.value;
+export async function getSessionUser(req?: NextRequest): Promise<AuthenticatedUser | null> {
+  let sessionToken: string | undefined;
+
+  // 1. ตรวจสอบจาก Stateful Session (CPE OAuth)
+  if (req) {
+    // กรณีเรียกจาก API Route หรือ Middleware
+    sessionToken = req.cookies.get("session_token")?.value;
+  } else {
+    // กรณีเรียกจาก Server Component เช่น layout.tsx หรือ page.tsx
+    const cookieStore = await cookies();
+    sessionToken = cookieStore.get("session_token")?.value;
+  }
 
   if (sessionToken) {
     const dbSession = await prisma.session.findUnique({

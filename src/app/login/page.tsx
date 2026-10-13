@@ -28,6 +28,12 @@ export default function LoginPage() {
       });
 
       if (result?.ok) {
+        const sessionResponse = await fetch("/api/auth/session", {
+          method: "POST",
+        });
+        if (!sessionResponse.ok) {
+          throw new Error("ไม่สามารถสร้าง session ได้");
+        }
         await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
         router.push("/");
         router.refresh();

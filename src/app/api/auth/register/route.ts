@@ -17,9 +17,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, errors: validation.error.flatten().fieldErrors }, { status: 400 });
     }
 
-    const { name, email, password } = validation.data;
+    const { name, password } = validation.data;
+    const email = validation.data.email.trim().toLowerCase();
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+      },
+    });
     if (existingUser) {
       return NextResponse.json({ success: false, message: "อีเมลนี้ถูกใช้งานแล้ว" }, { status: 400 });
     }
@@ -37,6 +45,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, message: "สมัครสมาชิกสำเร็จ" }, { status: 201 });
   } catch (error) {
+    console.error("POST /api/auth/register error:", error);
     return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
   }
 }

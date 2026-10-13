@@ -56,6 +56,14 @@ export function Auth({
         return;
       }
 
+      const sessionResponse = await fetch("/api/auth/session", {
+        method: "POST",
+      });
+      if (!sessionResponse.ok) {
+        setError("เข้าสู่ระบบสำเร็จ แต่ไม่สามารถสร้าง session ได้");
+        return;
+      }
+
       router.push("/");
       router.refresh();
     } catch (error) {
@@ -176,4 +184,3 @@ export function Auth({
     </main>
   );
 }
-
