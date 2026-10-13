@@ -47,6 +47,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             id: String(user.id),
             name: user.name,
             email: user.email,
+            role: user.role,
           };
         } catch (error) {
           console.error("Credentials password verification failed:", error);
@@ -88,6 +89,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.sub = user.id;
+        token.role = user.role;
       }
       return token;
     },
@@ -95,6 +97,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user && token.sub) {
         // cast id ให้ตรงกับ Type ฝั่ง NextAuth
         session.user.id = token.sub;
+        session.user.role = token.role;
       }
       return session;
     },

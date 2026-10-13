@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest , NextResponse} from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/auth";
@@ -16,6 +16,35 @@ const userSelect = {
   name: true,
   role: true,
 };
+
+export async function requireAdmin() {
+  const user = await getSessionUser();
+
+  if (!user) {
+    return {
+      authorized: false,
+      response: NextResponse.json(
+        { message: "Unauthorized: กรุณาเข้าสู่ระบบก่อนทำรายการ" },
+        { status: 401 }
+      ),
+    };
+  }
+
+  if (user.role !== "ADMIN") {
+    return {
+      authorized: false,
+      response: NextResponse.json(
+        { message: "Forbidden: บัญชีของคุณไม่มีสิทธิ์เข้าถึงส่วนนี้" },
+        { status: 403 }
+      ),
+    };
+  }
+
+  return {
+    authorized: true,
+    user,
+  };
+}
 
 export async function getSessionUser(req?: NextRequest): Promise<AuthenticatedUser | null> {
   let sessionToken: string | undefined;

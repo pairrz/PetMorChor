@@ -8,7 +8,7 @@ type ListingCard = {
   species: string;
   type: string;
   price: string | number | null;
-  userId: number;
+  user: { name: string };
   media?: { mediaUrl: string }[];
 };
 
@@ -18,6 +18,7 @@ export function PetCard({ pet }: { pet: ListingCard }) {
   const isAdoption =
     pet.type?.toUpperCase() === "ADOPTION";
 
+ 
   return (
     <Link className="pet-card" href={`/marketplace/${pet.id}`}>
       <div className="pet-image">
@@ -54,7 +55,7 @@ export function PetCard({ pet }: { pet: ListingCard }) {
 
         <p className="pet-meta">
           <MapPin size={13} />
-          ประกาศโดยผู้ใช้ #{pet.userId}
+          ประกาศโดย {pet.user.name}
         </p>
 
         <strong>

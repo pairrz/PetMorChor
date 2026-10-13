@@ -1,18 +1,23 @@
 import { prisma } from "@/lib/prisma";
+import Link from "next/link";
 import { SiteShell } from "@/components/layout/SiteShell";
+import { getAdminUser } from "@/lib/admin";
 import styles from "./page.module.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function InformationPage() {
-  const categories = await prisma.category.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      articles: {
-        orderBy: { createdAt: "desc" },
+  const [categories, user] = await Promise.all([
+    prisma.category.findMany({
+      orderBy: { name: "asc" },
+      include: {
+        articles: {
+          orderBy: { createdAt: "desc" },
+        },
       },
-    },
-  });
+    }),
+    getAdminUser(),
+  ]);
 
   const hasArticles = categories.some((category) => category.articles.length > 0);
 
@@ -21,7 +26,14 @@ export default async function InformationPage() {
       <main className={styles.page}>
         <header className={styles.heading}>
           <span className={styles.eyebrow}>PETMORCHOR INFORMATION</span>
-          <h1>ความรู้เรื่องสัตว์เลี้ยง</h1>
+          <div className={styles.headingRow}>
+            <h1>ความรู้เรื่องสัตว์เลี้ยง</h1>
+            {user && (
+              <Link className={styles.manageButton} href="/admin/articles">
+                จัดการบทความ
+              </Link>
+            )}
+          </div>
           <p>บทความและคำแนะนำสำหรับดูแลสัตว์เลี้ยง จากชุมชน PetMorChor</p>
         </header>
 
