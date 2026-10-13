@@ -23,6 +23,7 @@ import {
   PawPrint,
   Search,
   Send,
+  X,
 } from "lucide-react";
 import styles from "./page.module.css";
 
@@ -102,7 +103,7 @@ export default function ChatInbox() {
   const [isSending, setIsSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { socket } = useSocket();
+  const { socket, isConnected } = useSocket();
   const imageInputRef = useRef<HTMLInputElement>(null);
   const imageUpload = useImageUpload("chat");
 
@@ -128,8 +129,30 @@ export default function ChatInbox() {
       );
       return result.data;
     },
+    refetchInterval: isConnected ? false : 15_000,
   });
   const rooms = roomsQuery.data ?? emptyRooms;
+  const unreadTotal = rooms.reduce(
+    (total, room) => total + room._count.messages,
+    0,
+  );
+
+  useEffect(() => {
+    if (!socket || !currentUser) return;
+
+    const refreshRooms = () => {
+      void queryClient.invalidateQueries({
+        queryKey: ["chat-rooms", currentUser.id],
+      });
+    };
+
+    socket.on("unread_badge_increment", refreshRooms);
+    socket.on("unread_badge_refresh", refreshRooms);
+    return () => {
+      socket.off("unread_badge_increment", refreshRooms);
+      socket.off("unread_badge_refresh", refreshRooms);
+    };
+  }, [currentUser, queryClient, socket]);
 
   useEffect(() => {
     if (
@@ -142,9 +165,7 @@ export default function ChatInbox() {
     }
   }, [requestedRoomId, rooms, roomsQuery]);
 
-  const selectedRoom =
-    rooms.find((room) => room.id === activeRoomId) ??
-    (requestedRoomId === null ? rooms[0] : null);
+  const selectedRoom = rooms.find((room) => room.id === activeRoomId) ?? null;
 
   const otherParticipant = selectedRoom?.participants.find(
     (participant) => participant.user.id !== currentUser?.id,
@@ -253,19 +274,12 @@ export default function ChatInbox() {
       setIsSending(false);
       alert(error.message ?? "เกิดข้อผิดพลาดในการรับส่งข้อมูล");
     };
-    const handleOtherRoomMessage = () => {
-      void queryClient.invalidateQueries({
-        queryKey: ["chat-rooms", currentUser?.id],
-      });
-    };
     socket.on("error", handleSocketError);
-    socket.on("unread_badge_increment", handleOtherRoomMessage);
 
     return () => {
       socket.emit("leave_room", { roomId: currentRoomId });
       socket.off("new_message", handleNewMessage);
       socket.off("error", handleSocketError);
-      socket.off("unread_badge_increment", handleOtherRoomMessage);
     };
   }, [socket, selectedRoom?.id, currentUser?.id, queryClient]);
 
@@ -342,6 +356,10 @@ export default function ChatInbox() {
     }
   }
 
+  function removeAttachment(index: number) {
+    setAttachments((current) => current.filter((_, itemIndex) => itemIndex !== index));
+  }
+
   if (sessionQuery.isPending) {
     return (
       <div className={styles.loading}>
@@ -395,6 +413,12 @@ export default function ChatInbox() {
             <h2>ข้อความ</h2>
             <span>{rooms.length} บทสนทนา</span>
           </div>
+          {unreadTotal > 0 && (
+            <span className={styles.unreadSummary} role="status" aria-live="polite">
+              <MessageCircle size={14} />
+              {unreadTotal > 99 ? "99+" : unreadTotal} ข้อความใหม่
+            </span>
+          )}
           <span className={styles.composeIcon} aria-hidden="true">
             <MessageCircle size={18} />
           </span>
@@ -455,15 +479,6 @@ export default function ChatInbox() {
                   onClick={() => {
                     setSelectedRoomId(room.id);
                     setShowConversation(true);
-                    queryClient.setQueryData<ChatRoom[]>(
-                      ["chat-rooms", currentUser.id],
-                      (currentRooms = []) =>
-                        currentRooms.map((currentRoom) =>
-                          currentRoom.id === room.id
-                            ? { ...currentRoom, _count: { messages: 0 } }
-                            : currentRoom,
-                        ),
-                    );
                     router.replace("/chat", { scroll: false });
                   }}
                   aria-current={active ? "true" : undefined}
@@ -500,6 +515,11 @@ export default function ChatInbox() {
                         ? "มีรูปภาพใหม่"
                         : latestMessage?.content ?? "เริ่มต้นบทสนทนา"}
                     </span>
+                    {room._count.messages > 0 && (
+                      <span className={styles.unreadLabel}>
+                        ยังไม่ได้อ่าน {room._count.messages} ข้อความ
+                      </span>
+                    )}
                   </span>
                 </button>
               );
@@ -615,7 +635,13 @@ export default function ChatInbox() {
                         )}
                         <div className={styles.messageContent}>
                           {message.attachments && message.attachments.length > 0 && (
-                            <div className={styles.messageImages}>
+                            <div
+                              className={`${styles.messageImages} ${
+                                message.attachments.length === 1
+                                  ? styles.singleMessageImage
+                                  : ""
+                              }`}
+                            >
                               {message.attachments.map((attachment) => (
                                 <a
                                   href={attachment.mediaUrl}
@@ -648,6 +674,31 @@ export default function ChatInbox() {
               </>
             )}
           </div>
+
+          {(attachments.length > 0 || imageUpload.isPending) && (
+            <div className={styles.attachmentPreview} aria-label="รูปภาพที่เลือกแนบ">
+              {attachments.map((attachment, index) => (
+                <div className={styles.attachmentPreviewItem} key={attachment.publicId}>
+                  <img src={attachment.url} alt={`ตัวอย่างรูปที่ ${index + 1}`} />
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(index)}
+                    disabled={isSending}
+                    aria-label={`นำรูปที่ ${index + 1} ออก`}
+                    title="นำรูปออก"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+              {imageUpload.isPending && (
+                <div className={styles.attachmentUploading} role="status">
+                  <LoaderCircle className={styles.spinner} size={20} />
+                  <span>กำลังเตรียมรูป...</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <form className={styles.composer} onSubmit={handleSubmit}>
             <input

@@ -16,9 +16,10 @@ export const updateArticleSchema = createArticleSchema
   });
 
 // --- Place Schemas ---
-export const createPlaceSchema = z.object({
-  placeTypeId: z.number({ message: "กรุณาระบุประเภทสถานที่" }).int().positive(),
-  externalPlaceId: z.string().min(1, "กรุณาระบุ externalPlaceId"),
+const placeFieldsSchema = z.object({
+  placeTypeId: z.number().int().positive().optional(),
+  placeTypeName: z.string().trim().min(1).optional(),
+  externalPlaceId: z.string().min(1).optional(),
   name: z.string().min(2, "ชื่อสถานที่ต้องมีความยาวอย่างน้อย 2 ตัวอักษร"),
   address: z.string().min(5, "ที่อยู่ต้องมีความยาวอย่างน้อย 5 ตัวอักษร"),
   latitude: z.number().min(-90).max(90),
@@ -26,7 +27,20 @@ export const createPlaceSchema = z.object({
   openingHours: z.string().min(1, "กรุณาระบุเวลาทำการ"),
 });
 
-export const updatePlaceSchema = createPlaceSchema
+export const createPlaceSchema = placeFieldsSchema.refine(
+  (data) => Boolean(data.placeTypeId) !== Boolean(data.placeTypeName),
+  { message: "กรุณาระบุประเภทสถานที่", path: ["placeTypeName"] },
+);
+
+export const updatePlaceSchema = z.object({
+  placeTypeId: z.number().int().positive(),
+  externalPlaceId: z.string().min(1),
+  name: z.string().min(2, "ชื่อสถานที่ต้องมีความยาวอย่างน้อย 2 ตัวอักษร"),
+  address: z.string().min(5, "ที่อยู่ต้องมีความยาวอย่างน้อย 5 ตัวอักษร"),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  openingHours: z.string().min(1, "กรุณาระบุเวลาทำการ"),
+})
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
     message: "ต้องระบุฟิลด์ที่ต้องการแก้ไขอย่างน้อย 1 ฟิลด์",

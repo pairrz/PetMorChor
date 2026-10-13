@@ -24,6 +24,6 @@ const PetMap = dynamic(
   }
 );
 
-export default function PetMapClient() {
-  return <PetMap />;
+export default function PetMapClient({ isAdmin = false }: { isAdmin?: boolean }) {
+  return <PetMap isAdmin={isAdmin} />;
 }

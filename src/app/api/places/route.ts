@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getPlacesQuerySchema } from "@/lib/validations/place";
 
-// กลไก In-memory Cache ตามบทเรียน Caching Solutions
-let cachedPlaces: any[] | null = null;
-let lastCacheFetch = 0;
-const CACHE_TTL_MS = 1000 * 60 * 15; // แคชไว้ 15 นาที
-
 // GET /api/places - ดึงพิกัดสถานที่รอบ มช. (Visitor เข้าถึงได้)
 export async function GET(req: NextRequest) {
   try {
@@ -22,24 +17,14 @@ export async function GET(req: NextRequest) {
     }
 
     const { placeTypeId, userLat, userLng, radiusKm } = validation.data;
-    const now = Date.now();
+    let results = await prisma.place.findMany({
+      include: { placeType: true },
+    });
 
-    // 1. ตรวจสอบ Cache Hit / Miss[cite: 9]
-    if (!cachedPlaces || now - lastCacheFetch > CACHE_TTL_MS) {
-      cachedPlaces = await prisma.place.findMany({
-        include: { placeType: true },
-      });
-      lastCacheFetch = now;
-    }
-
-    let results = [...cachedPlaces];
-
-    // 2. กรองตามประเภทสถานที่ (เช่น คลินิก 24 ชม., ร้านอาหารสัตว์)
     if (placeTypeId) {
       results = results.filter((p) => p.placeTypeId === placeTypeId);
     }
 
-    // 3. กรองตามระยะทางพิกัดรอบ มช. หาก Client มีการส่งตำแหน่งปัจจุบันเข้ามา
     if (userLat !== undefined && userLng !== undefined) {
       results = results.filter((place) => {
         const pLat = Number(place.latitude);
@@ -58,7 +43,6 @@ export async function GET(req: NextRequest) {
       {
         success: true,
         data: results,
-        cached: now - lastCacheFetch <= CACHE_TTL_MS,
       },
       { status: 200 }
     );

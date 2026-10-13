@@ -66,18 +66,20 @@ export function NavbarChatBadge() {
   return (
     <Link
       href="/chat"
-      className="relative inline-flex items-center justify-center p-2 rounded-full hover:bg-gray-100 transition-colors"
-      aria-label="กล่องข้อความ"
+      className="header-chat-link"
+      aria-label={
+        unreadCount > 0
+          ? `แชต มี ${unreadCount} ข้อความที่ยังไม่ได้อ่าน`
+          : "แชต"
+      }
     >
-      <MessageCircle className="w-6 h-6 text-gray-700" />
+      <MessageCircle size={19} aria-hidden="true" />
+      <span>แชต</span>
       {unreadCount > 0 && (
         <span
-          className="absolute right-0 top-0 z-10 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"
-          aria-label={`${unreadCount} ข้อความที่ยังไม่ได้อ่าน`}
-        />
-      )}
-      {unreadCount > 0 && (
-        <span className="absolute -right-2 -top-2 flex min-w-[18px] h-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-bold text-white">
+          className="chat-unread-badge"
+          aria-hidden="true"
+        >
           {unreadCount > 99 ? "99+" : unreadCount}
         </span>
       )}

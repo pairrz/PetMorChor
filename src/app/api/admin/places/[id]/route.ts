@@ -101,6 +101,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authCheck = await requireAdmin();
+    if (!authCheck.authorized) {
+      return authCheck.response;
+    }
+
     const { id } = await params;
     const placeId = parseInt(id, 10);
 

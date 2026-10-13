@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LoaderCircle, MapPin, MessageCircle } from "lucide-react";
+import {
+  BadgeCheck,
+  CalendarDays,
+  LoaderCircle,
+  MapPin,
+  MessageCircle,
+  PawPrint,
+} from "lucide-react";
 
 import { Eyebrow } from "@/components/layout/Eyebrow";
 
@@ -51,8 +58,12 @@ export function AnimalDetail({ listing }: { listing: ListingDetail }) {
       } else {
         router.push("/chat");
       }
-    } catch (error: any) {
-      alert(error.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+    } catch (error: unknown) {
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+      );
     } finally {
       setIsCreatingChat(false);
     }
@@ -60,29 +71,62 @@ export function AnimalDetail({ listing }: { listing: ListingDetail }) {
 
   return (
     <div className="animal-detail">
-      <img
-        className="detail-image"
-        src={image ?? "/placeholder.jpg"}
-        alt={listing.title}
-      />
+      <div className="animal-detail__photo">
+        <img
+          className="detail-image"
+          src={image ?? "/placeholder.jpg"}
+          alt={listing.title}
+        />
+        <span
+          className={`animal-detail__status${isAdoption ? " is-adoption" : ""}`}
+        >
+          <PawPrint size={14} />
+          {isAdoption ? "กำลังหาบ้าน" : "ประกาศขาย"}
+        </span>
+      </div>
 
-      <div>
-        <Eyebrow>{isAdoption ? "ADOPTION" : "FOR SALE"} · {listing.status}</Eyebrow>
+      <section className="animal-detail__content" aria-labelledby="listing-title">
+        <header className="animal-detail__heading">
+          <Eyebrow>
+            {listing.status === "AVAILABLE"
+              ? "พร้อมติดต่อ"
+              : listing.status === "ADOPTED"
+                ? "มีผู้รับเลี้ยงแล้ว"
+                : "ปิดประกาศ"}
+          </Eyebrow>
+          <h2 id="listing-title">{listing.title}</h2>
+        </header>
 
-        <h1>{listing.title}</h1>
-
-        <p className="lead">
-          {listing.species} · {isAdoption ? "หาบ้าน" : `${Number(listing.price).toLocaleString("th-TH")} บาท`}
-        </p>
+        <div className="animal-detail__summary">
+          <div className="animal-detail__species">
+            <span>ประเภทสัตว์</span>
+            <strong>
+              <PawPrint size={16} />
+              {listing.species}
+            </strong>
+          </div>
+          <div className="animal-detail__price">
+            <span>{isAdoption ? "รูปแบบประกาศ" : "ราคา"}</span>
+            <strong>
+              {isAdoption
+                ? "หาบ้าน"
+                : `${Number(listing.price).toLocaleString("th-TH")} บาท`}
+            </strong>
+          </div>
+        </div>
 
         <p className="location-pill">
-          <MapPin size={14} />
-          ประกาศโดย {listing.user.name}
+          <MapPin size={16} />
+          <span>ประกาศโดย</span>
+          <strong>{listing.user.name}</strong>
         </p>
 
-        <p>{listing.description}</p>
+        <section className="detail-description" aria-labelledby="listing-description-title">
+          <h3 id="listing-description-title">รายละเอียด</h3>
+          <p>{listing.description.trim() || "ผู้ประกาศไม่ได้ระบุรายละเอียดเพิ่มเติม"}</p>
+        </section>
 
-        <div className="hero-actions">
+        <div className="hero-actions animal-detail__actions">
           <button
             type="button"
             className="primary-cta"
@@ -101,18 +145,20 @@ export function AnimalDetail({ listing }: { listing: ListingDetail }) {
               </>
             )}
           </button>
-
-          <button type="button" className="secondary-cta">
-            ♡ Save
-          </button>
         </div>
 
         <div className="trust-box">
-          ✓ Campus community member
-          <br />
-          ประกาศเมื่อ {new Date(listing.createdAt).toLocaleDateString("th-TH")}
+          <BadgeCheck size={20} />
+          <span>
+            <strong>สมาชิกชุมชนรอบมหาวิทยาลัย</strong>
+            <small>
+              <CalendarDays size={14} />
+              ประกาศเมื่อ{" "}
+              {new Date(listing.createdAt).toLocaleDateString("th-TH")}
+            </small>
+          </span>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

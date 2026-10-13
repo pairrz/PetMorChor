@@ -9,6 +9,13 @@
   gap: 10px;
 }
 
+.filterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .filterButton {
   display: inline-flex;
   min-height: 42px;
@@ -35,6 +42,38 @@
   border-color: #7652c8;
   color: #fff;
   background: #7652c8;
+}
+
+.addPlaceButton,
+.submitPlaceButton {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid #5b33b0;
+  border-radius: 999px;
+  color: #fff;
+  background: #6840c6;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background-color 150ms ease, transform 150ms ease;
+}
+
+.addPlaceButton:hover,
+.submitPlaceButton:hover:not(:disabled) {
+  background: #512e9f;
+  transform: translateY(-1px);
+}
+
+.addPlaceButton:focus-visible,
+.submitPlaceButton:focus-visible,
+.cancelButton:focus-visible {
+  outline: 3px solid rgb(104 64 198 / 32%);
+  outline-offset: 2px;
 }
 
 .map {
@@ -215,6 +254,116 @@
   animation: popIn 200ms ease both;
 }
 
+.addPlaceDialog {
+  width: min(100%, 600px);
+}
+
+.formIntro {
+  margin: -10px 0 20px;
+  color: #777184;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.placeForm {
+  display: grid;
+  gap: 14px;
+}
+
+.placeForm label {
+  display: grid;
+  gap: 6px;
+  color: #514a60;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.placeForm input,
+.placeForm textarea,
+.placeForm select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #ded8e9;
+  border-radius: 11px;
+  outline: none;
+  color: #302b42;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.placeForm textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.placeForm input:focus,
+.placeForm textarea:focus,
+.placeForm select:focus {
+  border-color: #7652c8;
+  box-shadow: 0 0 0 3px rgb(118 82 200 / 14%);
+}
+
+.placeForm input::placeholder {
+  color: #a29bab;
+}
+
+.coordinateFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.coordinateHint {
+  margin: -7px 0 0;
+  color: #80798d;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.formError {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid #f0c6c6;
+  border-radius: 11px;
+  color: #a52c35;
+  background: #fff3f3;
+  font-size: 13px;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.cancelButton {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #e2ddeb;
+  border-radius: 999px;
+  color: #625873;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: #f7f4fb;
+}
+
+.submitPlaceButton:disabled,
+.cancelButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .modalClose {
   position: absolute;
   top: 14px;
@@ -293,6 +442,46 @@
   line-height: 1.6;
 }
 
+.deletePlaceActions {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.deletePlaceButton {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid #f0c5c8;
+  border-radius: 14px;
+  color: #b42332;
+  background: #fff7f7;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+
+.deletePlaceButton:hover:not(:disabled) {
+  border-color: #d93f4d;
+  color: #fff;
+  background: #c93643;
+}
+
+.deletePlaceButton:focus-visible {
+  outline: 3px solid rgb(217 63 77 / 28%);
+  outline-offset: 2px;
+}
+
+.deletePlaceButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .placeDetails a.mapsButton,
 .placeDetails a.mapsButton:visited {
   display: flex;
@@ -330,6 +519,24 @@
   outline-offset: 2px;
 }
 
+@media (max-width: 600px) {
+  .filterBar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .addPlaceButton {
+    align-self: flex-start;
+  }
+
+  .coordinateFields {
+    grid-template-columns: 1fr;
+  }
+
+  .addPlaceDialog {
+    padding: 22px;
+  }
+}
 
 @keyframes fadeIn {
   from { opacity: 0; }
@@ -354,7 +561,10 @@
   }
 
   .placeDetails a.mapsButton,
-  .modalClose {
+  .modalClose,
+  .addPlaceButton,
+  .submitPlaceButton,
+  .deletePlaceButton {
     transition: none;
   }
 }

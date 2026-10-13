@@ -45,8 +45,9 @@ export default async function MarketplaceDetailPage({
 
   return (
     <PageFrame
-      title="Animal listing"
-      eyebrow="PERSONAL LISTING"
+      title="รายละเอียดประกาศ"
+      subtitle="ข้อมูลสัตว์เลี้ยงและช่องทางติดต่อผู้ประกาศ"
+      eyebrow="PET MARKETPLACE"
     >
       <AnimalDetail listing={result.data} />
     </PageFrame>
