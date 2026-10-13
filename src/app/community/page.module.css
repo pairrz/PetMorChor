@@ -184,6 +184,26 @@
   margin: 10px 0 0;
 }
 
+.commentUserButton {
+  padding: 0;
+  border: 0;
+  color: #302b42;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.commentUserButton:hover:not(:disabled) {
+  color: #6843bb;
+  text-decoration: underline;
+}
+
+.commentUserButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .commentForm {
   display: flex;
   gap: 8px;

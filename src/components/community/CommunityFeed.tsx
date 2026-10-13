@@ -207,7 +207,18 @@ export function CommunityFeed({ posts }: { posts: Post[] }) {
               ) : (
                 comments[post.id]?.map((comment) => (
                   <p key={comment.id}>
-                    <strong>{comment.user.name}</strong> {comment.content}
+                    <button
+                      type="button"
+                      className={styles.commentUserButton}
+                      onClick={() => void openChat(comment.user.id)}
+                      disabled={openingChatUserId === comment.user.id}
+                      title="กดเพื่อเริ่มแชท"
+                    >
+                      {openingChatUserId === comment.user.id
+                        ? "กำลังเปิดแชท..."
+                        : comment.user.name}
+                    </button>{" "}
+                    {comment.content}
                   </p>
                 ))
               )}
