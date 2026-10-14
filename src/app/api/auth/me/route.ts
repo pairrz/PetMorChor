@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/session";
+import { getSessionUser } from "@/lib/auth-guard";
 
 export async function GET() {
-  const user = await getCurrentUser();
+  const user = await getSessionUser();
 
   return NextResponse.json({
     authenticated: !!user,

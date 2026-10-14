@@ -82,9 +82,28 @@ export async function getSessionUser(req?: NextRequest): Promise<AuthenticatedUs
 
   // 2. ตรวจสอบจาก Auth.js Session (Google OAuth / Credentials)
   const authSession = await auth();
-  if (authSession?.user?.email) {
+  const authEmail = authSession?.user?.email;
+  if (authEmail) {
+    const sessionUser = authSession.user;
+
+    // Credentials sessions already contain the database id and role in the JWT.
+    // Avoid a second user lookup for this common path.
+    if (
+      sessionUser.id &&
+      /^\d+$/.test(sessionUser.id) &&
+      sessionUser.name &&
+      sessionUser.role
+    ) {
+      return {
+        id: Number(sessionUser.id),
+        email: authEmail,
+        name: sessionUser.name,
+        role: sessionUser.role as "USER" | "ADMIN",
+      };
+    }
+
     const user = await prisma.user.findUnique({
-      where: { email: authSession.user.email },
+      where: { email: authEmail },
       select: userSelect,
     });
 

@@ -119,7 +119,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="header-actions">
-          <NavbarChatBadge />
+          <NavbarChatBadge enabled={!!user} />
 
           <Link href="/profile">
             <span className="avatar">{avatarLetter}</span>

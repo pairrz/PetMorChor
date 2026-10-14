@@ -5,7 +5,7 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { useSocket } from "@/context/SocketContext";
 
-export function NavbarChatBadge() {
+export function NavbarChatBadge({ enabled = true }: { enabled?: boolean }) {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const { socket } = useSocket();
 
@@ -24,13 +24,17 @@ export function NavbarChatBadge() {
 
   // 1. ดึงยอดรอบแรกตอน Mount
   useEffect(() => {
+    if (!enabled) return;
+
     const timer = window.setTimeout(() => {
       void syncUnreadCount();
     }, 0);
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
+
     const handleUnreadRefresh = () => {
       void syncUnreadCount();
     };
@@ -38,11 +42,11 @@ export function NavbarChatBadge() {
     window.addEventListener("chat-unread-refresh", handleUnreadRefresh);
     return () =>
       window.removeEventListener("chat-unread-refresh", handleUnreadRefresh);
-  }, []);
+  }, [enabled]);
 
   // 2. ดักฟัง Event จาก WebSocket
   useEffect(() => {
-    if (!socket) return;
+    if (!enabled || !socket) return;
 
     // มีข้อความใหม่เข้ามาหาเรา -> อ่านยอดจากฐานข้อมูลเพื่อให้ตรงกับ isRead
     const handleIncrement = () => {
@@ -61,7 +65,7 @@ export function NavbarChatBadge() {
       socket.off("unread_badge_increment", handleIncrement);
       socket.off("unread_badge_refresh", handleRefresh);
     };
-  }, [socket]);
+  }, [enabled, socket]);
 
   return (
     <Link
