@@ -20,8 +20,8 @@ ENV NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=$NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
 ENV NEXT_PUBLIC_CPE_CLIENT_ID=$NEXT_PUBLIC_CPE_CLIENT_ID
 ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
 
-RUN npx prisma generate
-RUN npm run build
+RUN DATABASE_URL="postgresql://user:pass@localhost:5432/db" npx prisma generate
+RUN DATABASE_URL="postgresql://user:pass@localhost:5432/db" npm run build
 
 FROM builder AS migrator
 CMD ["npx", "prisma", "migrate", "deploy"]

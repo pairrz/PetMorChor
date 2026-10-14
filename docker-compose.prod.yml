@@ -1,0 +1,76 @@
+name: ${PROJECT_NAME}
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ${PROJECT_NAME}-db
+    restart: always
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    environment:
+      TZ: Asia/Bangkok
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - app-net
+
+  migrate:
+    image: pairrz/pet-morchor:migrator
+    profiles: ["tools"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      ADMIN_EMAILS: ${ADMIN_EMAILS}
+    networks:
+      - app-net
+
+  app:
+    image: pairrz/pet-morchor:1.0.1
+    container_name: ${PROJECT_NAME}-app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT}:3000"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      NODE_ENV: production
+      TZ: Asia/Bangkok
+    networks:
+      - app-net
+
+  socket:
+    image: pairrz/pet-morchor:migrator
+    container_name: ${PROJECT_NAME}-socket
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["npx", "tsx", "socket-server/index.ts"]
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      WS_PORT: "4000"
+      CLIENT_URL: http://fsg09.cpecmu.com
+      NODE_ENV: production
+      TZ: Asia/Bangkok
+    networks:
+      - app-net
+
+volumes:
+  pg-data:
+
+networks:
+  app-net:
