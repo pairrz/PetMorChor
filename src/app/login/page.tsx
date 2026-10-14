@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import { isCredentialsSignInError } from "@/lib/auth-errors";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,21 +28,23 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      if (result?.ok) {
-        const sessionResponse = await fetch("/api/auth/session", {
-          method: "POST",
-        });
-        if (!sessionResponse.ok) {
-          throw new Error("ไม่สามารถสร้าง session ได้");
-        }
+      // Auth.js can return HTTP 200 with an error encoded in result.url.
+      // Always check the error before treating the response as a successful login.
+      if (result?.error) {
+        setErrorMsg("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
+      } else if (result?.ok) {
         await queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
         router.push("/");
         router.refresh();
       } else {
         setErrorMsg("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
       }
-    } catch {
-      setErrorMsg("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง");
+    } catch (error) {
+      setErrorMsg(
+        isCredentialsSignInError(error)
+          ? "รหัสผ่านไม่ถูกต้อง"
+          : "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง",
+      );
     } finally {
       setIsPending(false);
     }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { isCredentialsSignInError } from "@/lib/auth-errors";
 
 export function Auth({
   register = false,
@@ -51,16 +52,8 @@ export function Auth({
         redirect: false,
       });
 
-      if (!result?.ok) {
+      if (result?.error || !result?.ok) {
         setError("อีเมลหรือรหัสผ่านไม่ถูกต้อง");
-        return;
-      }
-
-      const sessionResponse = await fetch("/api/auth/session", {
-        method: "POST",
-      });
-      if (!sessionResponse.ok) {
-        setError("เข้าสู่ระบบสำเร็จ แต่ไม่สามารถสร้าง session ได้");
         return;
       }
 
@@ -68,7 +61,11 @@ export function Auth({
       router.refresh();
     } catch (error) {
       console.error(error);
-      setError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
+      setError(
+        isCredentialsSignInError(error)
+          ? "รหัสผ่านไม่ถูกต้อง"
+          : "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
+      );
     } finally {
       setLoading(false);
     }

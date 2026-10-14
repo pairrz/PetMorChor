@@ -39,20 +39,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        try {
-          const passwordMatches = await comparePassword(password, user.password);
-          if (!passwordMatches) return null;
-
-          return {
-            id: String(user.id),
-            name: user.name,
-            email: user.email,
-            role: user.role,
-          };
-        } catch (error) {
-          console.error("Credentials password verification failed:", error);
+        const passwordMatches = await comparePassword(password, user.password);
+        if (!passwordMatches) {
           return null;
         }
+
+        return {
+          id: String(user.id),
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        };
       },
     }),
   ],
