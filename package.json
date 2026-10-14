@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "seed": "prisma seed",
     "lint": "eslint",
     "dev:socket": "tsx watch socket-server/index.ts",
     "start:socket": "tsx socket-server/index.ts"
@@ -52,5 +53,5 @@
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"
-  }
+    }
 }
