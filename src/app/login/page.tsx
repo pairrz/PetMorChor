@@ -55,18 +55,8 @@ export default function LoginPage() {
     };
 
     const handleCpeOauthLogin = () => {
-    const clientId = process.env.NEXT_PUBLIC_CPE_CLIENT_ID || "YOUR_CLIENT_ID";
-    const redirectUri = "http://localhost:3000/api/auth/callback";
-    const scope = "openid profile email basic_info";
-
-    const authUrl = `https://oauth497.cpecmu.com/application/o/authorize/?client_id=${encodeURIComponent(
-      clientId
-    )}&redirect_uri=${encodeURIComponent(
-      redirectUri
-    )}&response_type=code&scope=${encodeURIComponent(scope)}`;
-
-    window.location.href = authUrl;
-  };
+      window.location.href = "/api/auth/cpe";
+    };
 
   return (
     <section className="px-4 py-12 sm:py-16">

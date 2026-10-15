@@ -4,14 +4,20 @@ import crypto from "crypto";
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
+  const state = req.nextUrl.searchParams.get("state");
+  const expectedState = req.cookies.get("oauth_state")?.value;
 
   if (!code) {
     return NextResponse.redirect(new URL("/login?error=MissingCode", req.url));
   }
 
+  if (!state || !expectedState || state !== expectedState) {
+    return NextResponse.redirect(new URL("/login?error=InvalidState", req.url));
+  }
+
   const clientId = process.env.CPE_OAUTH_CLIENT_ID!;
   const clientSecret = process.env.CPE_OAUTH_CLIENT_SECRET!;
-  const redirectUri = "https://fsg09.cpecmu.com/api/auth/callback";
+  const redirectUri = process.env.CPE_OAUTH_REDIRECT_URI!;
 
   try {
     // 1. แลก Token ตามสเปกของ CPE Mock
