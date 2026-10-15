@@ -33,7 +33,7 @@ services:
       - app-net
 
   app:
-    image: pairrz/pet-morchor:1.0.3
+    image: pairrz/pet-morchor:1.0.5
     container_name: ${PROJECT_NAME}-app
     restart: always
     depends_on:
