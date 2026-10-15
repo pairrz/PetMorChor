@@ -23,6 +23,7 @@ interface InformationLibraryProps {
 
 export function InformationLibrary({ categories }: InformationLibraryProps) {
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+  const [articleIndexes, setArticleIndexes] = useState<Record<number, number>>({});
   const [selectedArticle, setSelectedArticle] = useState<InformationArticle | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const articleCount = categories.reduce((total, category) => total + category.articles.length, 0);
@@ -49,6 +50,13 @@ export function InformationLibrary({ categories }: InformationLibraryProps) {
         block: "start",
       });
     });
+  }
+
+  function selectArticleIndex(categoryId: number, index: number, articleCount: number) {
+    setArticleIndexes((current) => ({
+      ...current,
+      [categoryId]: Math.max(0, Math.min(index, articleCount - 1)),
+    }));
   }
 
   const formatDate = (date: string) =>
@@ -114,31 +122,71 @@ export function InformationLibrary({ categories }: InformationLibraryProps) {
                   <span className={styles.categoryCount}>{category.articles.length} บทความ</span>
                 </div>
 
-                <div className={styles.articles}>
-                  {category.articles.map((article) => (
-                    <article className={styles.article} key={article.id}>
-                      <button
-                        className={styles.articleOpen}
-                        type="button"
-                        onClick={() => setSelectedArticle(article)}
-                        aria-label={`อ่านบทความ ${article.title}`}
-                      >
-                        <span className={styles.articleMeta}>
-                          <span className={styles.categoryTag}>{category.name}</span>
-                          <span className={styles.speciesTag}>{article.speciesTag}</span>
-                        </span>
+                {(() => {
+                  const articleIndex = Math.min(
+                    articleIndexes[category.id] ?? 0,
+                    category.articles.length - 1,
+                  );
+                  const article = category.articles[articleIndex];
+                  if (!article) return null;
 
-                        <span className={styles.articleTitle}>{article.title}</span>
-                        <span className={styles.content}>{article.content}</span>
+                  return (
+                    <>
+                      <div className={styles.articles}>
+                        <article className={styles.article} key={article.id}>
+                          <button
+                            className={styles.articleOpen}
+                            type="button"
+                            onClick={() => setSelectedArticle(article)}
+                            aria-label={`อ่านบทความ ${article.title}`}
+                          >
+                            <span className={styles.articleMeta}>
+                              <span className={styles.categoryTag}>{category.name}</span>
+                              <span className={styles.speciesTag}>{article.speciesTag}</span>
+                            </span>
 
-                        <span className={styles.articleFooter}>
-                          <span>กดเพื่ออ่านรายละเอียด</span>
-                          <time dateTime={article.createdAt}>{formatDate(article.createdAt)}</time>
-                        </span>
-                      </button>
-                    </article>
-                  ))}
-                </div>
+                            <span className={styles.articleTitle}>{article.title}</span>
+                            <span className={styles.content}>{article.content}</span>
+
+                            <span className={styles.articleFooter}>
+                              <span>กดเพื่ออ่านรายละเอียด</span>
+                              <time dateTime={article.createdAt}>{formatDate(article.createdAt)}</time>
+                            </span>
+                          </button>
+                        </article>
+                      </div>
+
+                      {category.articles.length > 1 && (
+                        <nav
+                          className={styles.articleNavigation}
+                          aria-label={`เลื่อนดูบทความในหมวด${category.name}`}
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              selectArticleIndex(category.id, articleIndex - 1, category.articles.length)
+                            }
+                            disabled={articleIndex === 0}
+                          >
+                            ← ก่อนหน้า
+                          </button>
+                          <span aria-live="polite">
+                            {articleIndex + 1} / {category.articles.length}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              selectArticleIndex(category.id, articleIndex + 1, category.articles.length)
+                            }
+                            disabled={articleIndex === category.articles.length - 1}
+                          >
+                            ถัดไป →
+                          </button>
+                        </nav>
+                      )}
+                    </>
+                  );
+                })()}
               </section>
             ))}
           </div>

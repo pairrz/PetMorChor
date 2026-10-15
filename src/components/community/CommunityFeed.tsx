@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import styles from "@/app/community/page.module.css";
@@ -41,6 +41,15 @@ export function CommunityFeed({ posts }: { posts: Post[] }) {
   const [submittingComment, setSubmittingComment] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [openingChatUserId, setOpeningChatUserId] = useState<number | null>(null);
+  const [mediaIndexes, setMediaIndexes] = useState<Record<number, number>>({});
+  const touchStartX = useRef<number | null>(null);
+
+  function showMedia(postId: number, index: number, mediaCount: number) {
+    setMediaIndexes((current) => ({
+      ...current,
+      [postId]: Math.max(0, Math.min(index, mediaCount - 1)),
+    }));
+  }
 
   async function openChat(userId: number) {
     setOpeningChatUserId(userId);
@@ -180,13 +189,93 @@ export function CommunityFeed({ posts }: { posts: Post[] }) {
           <p className={styles.description}>{post.description}</p>
 
           {post.media.length > 0 && (
-            <div className={styles.media}>
-              {post.media.map((item) =>
-                item.mediaType === "VIDEO" ? (
-                  <video key={item.id} src={item.mediaUrl} controls preload="metadata" />
+            <div
+              className={styles.media}
+              role="group"
+              aria-label={`รูปภาพและวิดีโอในโพสต์: ${post.caption}`}
+              onTouchStart={(event) => {
+                touchStartX.current = event.changedTouches[0]?.clientX ?? null;
+              }}
+              onTouchEnd={(event) => {
+                const startX = touchStartX.current;
+                const endX = event.changedTouches[0]?.clientX;
+                touchStartX.current = null;
+                if (startX === null || endX === undefined || post.media.length < 2) return;
+
+                const swipeDistance = endX - startX;
+                if (Math.abs(swipeDistance) < 40) return;
+
+                const currentIndex = mediaIndexes[post.id] ?? 0;
+                showMedia(
+                  post.id,
+                  currentIndex + (swipeDistance < 0 ? 1 : -1),
+                  post.media.length
+                );
+              }}
+            >
+              {(() => {
+                const currentIndex = Math.min(
+                  mediaIndexes[post.id] ?? 0,
+                  post.media.length - 1
+                );
+                const item = post.media[currentIndex];
+
+                return item.mediaType === "VIDEO" ? (
+                  <video
+                    key={item.id}
+                    className={styles.slide}
+                    src={item.mediaUrl}
+                    controls
+                    preload="metadata"
+                  />
                 ) : (
-                  <img key={item.id} src={item.mediaUrl} alt={`รูปภาพประกอบโพสต์: ${post.caption}`} />
-                ),
+                  <img
+                    key={item.id}
+                    className={styles.slide}
+                    src={item.mediaUrl}
+                    alt={`รูปภาพ ${currentIndex + 1} จาก ${post.media.length}: ${post.caption}`}
+                  />
+                );
+              })()}
+
+              {post.media.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    className={`${styles.mediaButton} ${styles.previousMedia}`}
+                    onClick={() =>
+                      showMedia(
+                        post.id,
+                        (mediaIndexes[post.id] ?? 0) - 1,
+                        post.media.length
+                      )
+                    }
+                    disabled={(mediaIndexes[post.id] ?? 0) === 0}
+                    aria-label="ดูรูปก่อนหน้า"
+                  >
+                    ‹
+                  </button>
+                  <span className={styles.mediaCount} aria-live="polite">
+                    {Math.min(mediaIndexes[post.id] ?? 0, post.media.length - 1) + 1}
+                    {" / "}
+                    {post.media.length}
+                  </span>
+                  <button
+                    type="button"
+                    className={`${styles.mediaButton} ${styles.nextMedia}`}
+                    onClick={() =>
+                      showMedia(
+                        post.id,
+                        (mediaIndexes[post.id] ?? 0) + 1,
+                        post.media.length
+                      )
+                    }
+                    disabled={(mediaIndexes[post.id] ?? 0) >= post.media.length - 1}
+                    aria-label="ดูรูปถัดไป"
+                  >
+                    ›
+                  </button>
+                </>
               )}
             </div>
           )}
