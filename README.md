@@ -93,3 +93,23 @@ Open [http://localhost:3000] in your browser.
 | `npm run build` | Build application |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm test` | Run unit and integration tests |
+| `npm run test:e2e` | Run browser end-to-end tests |
+
+### End-to-End Tests
+
+Install the Playwright Chromium browser once:
+
+```bash
+npx playwright install chromium
+```
+
+Run the E2E suite:
+
+```bash
+npm run test:e2e
+```
+
+Playwright starts the Next.js development server on port `3105`. The login
+scenarios mock the login API response, so they do not create or modify database
+records.
