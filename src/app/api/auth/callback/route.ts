@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
   const clientId = process.env.CPE_OAUTH_CLIENT_ID!;
   const clientSecret = process.env.CPE_OAUTH_CLIENT_SECRET!;
-  const redirectUri = "http://localhost:3000/api/auth/callback";
+  const redirectUri = "https://fsg09.cpecmu.com/api/auth/callback";
 
   try {
     // 1. แลก Token ตามสเปกของ CPE Mock
