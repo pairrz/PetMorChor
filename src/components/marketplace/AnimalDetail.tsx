@@ -23,7 +23,7 @@ type ListingDetail = {
   status: string;
   createdAt: string;
   user: { name: string };
-  media: { mediaUrl: string; mediaType: string }[];
+  media: { mediaUrl: string }[];
 };
 
 export function AnimalDetail({ listing }: { listing: ListingDetail }) {

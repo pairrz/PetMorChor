@@ -33,7 +33,7 @@ services:
       - app-net
 
   app:
-    image: pairrz/pet-morchor:1.0.2
+    image: pairrz/pet-morchor:1.0.3
     container_name: ${PROJECT_NAME}-app
     restart: always
     depends_on:
@@ -59,7 +59,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       WS_PORT: "4000"
-      CLIENT_URL: http://fsg09.cpecmu.com:${APP_PORT}
+      CLIENT_URL: https://fsg09.cpecmu.com
       NODE_ENV: production
       TZ: Asia/Bangkok
     networks:

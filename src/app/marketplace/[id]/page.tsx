@@ -2,19 +2,7 @@ import { notFound } from "next/navigation";
 
 import { PageFrame } from "@/components/layout/PageFrame";
 import { AnimalDetail } from "@/components/marketplace/AnimalDetail";
-
-type ListingDetail = {
-  id: number;
-  title: string;
-  description: string;
-  species: string;
-  price: string | number;
-  type: string;
-  status: string;
-  createdAt: string;
-  user: { id: number; name: string };
-  media: { id: number; mediaUrl: string; mediaType: string }[];
-};
+import { prisma } from "@/lib/prisma";
 
 export default async function MarketplaceDetailPage({
   params,
@@ -28,20 +16,19 @@ export default async function MarketplaceDetailPage({
     notFound();
   }
 
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/listings/${listingId}`,
-    { cache: "no-store" },
-  );
+  const listing = await prisma.listing.findUnique({
+    where: { id: listingId },
+    include: {
+      user: { select: { id: true, name: true } },
+      media: {
+        orderBy: { order: "asc" },
+      },
+    },
+  });
 
-  if (response.status === 404) {
+  if (!listing) {
     notFound();
   }
-
-  if (!response.ok) {
-    throw new Error("ไม่สามารถโหลดรายละเอียดประกาศได้");
-  }
-
-  const result: { success: boolean; data: ListingDetail } = await response.json();
 
   return (
     <PageFrame
@@ -49,7 +36,13 @@ export default async function MarketplaceDetailPage({
       subtitle="ข้อมูลสัตว์เลี้ยงและช่องทางติดต่อผู้ประกาศ"
       eyebrow="PET MARKETPLACE"
     >
-      <AnimalDetail listing={result.data} />
+      <AnimalDetail
+        listing={{
+          ...listing,
+          price: listing.price.toString(),
+          createdAt: listing.createdAt.toISOString(),
+        }}
+      />
     </PageFrame>
   );
 }
