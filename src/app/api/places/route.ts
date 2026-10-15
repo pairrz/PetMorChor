@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
-
-// Validation Schema สำหรับพิกัดและประเภทร้านค้า
-const getPlacesQuerySchema = z.object({
-  placeTypeId: z.coerce.number().int().positive().optional(),
-  userLat: z.coerce.number().min(-90).max(90).optional(),
-  userLng: z.coerce.number().min(-180).max(180).optional(),
-  radiusKm: z.coerce.number().positive().max(30).default(5), // รัศมีรอบ มช. ค่าเริ่มต้น 5 กม.
-});
+import type { Prisma } from "@/generated/prisma/client";
+import { getPlacesQuerySchema, isWithinRadiusKm } from "@/lib/places";
 
 // กลไก In-memory Cache ตามบทเรียน Caching Solutions
-let cachedPlaces: any[] | null = null;
+type PlaceWithType = Prisma.PlaceGetPayload<{ include: { placeType: true } }>;
+
+let cachedPlaces: PlaceWithType[] | null = null;
 let lastCacheFetch = 0;
 const CACHE_TTL_MS = 1000 * 60 * 15; // แคชไว้ 15 นาที
 
@@ -50,15 +45,13 @@ export async function GET(req: NextRequest) {
     // 3. กรองตามระยะทางพิกัดรอบ มช. หาก Client มีการส่งตำแหน่งปัจจุบันเข้ามา
     if (userLat !== undefined && userLng !== undefined) {
       results = results.filter((place) => {
-        const pLat = Number(place.latitude);
-        const pLng = Number(place.longitude);
-
-        // คำนวณระยะทางแบบย่อ (Flat Earth approximation สำหรับระดับเมือง)
-        const dLat = (pLat - userLat) * 111;
-        const dLng = (pLng - userLng) * 111 * Math.cos(userLat * (Math.PI / 180));
-        const distanceKm = Math.sqrt(dLat * dLat + dLng * dLng);
-
-        return distanceKm <= radiusKm;
+        return isWithinRadiusKm(
+          Number(place.latitude),
+          Number(place.longitude),
+          userLat,
+          userLng,
+          radiusKm
+        );
       });
     }
 

@@ -4,12 +4,20 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import Link from "next/link";
 
+type Listing = {
+  id: number;
+  title: string;
+  species: string;
+  price: number | string;
+  media: { mediaUrl: string }[];
+};
+
 export function PetGrid() {
   // ดึงข้อมูลผ่าน TanStack Query ตามสไลด์ T10[cite: 8]
   const { data: listings, isLoading, error } = useQuery({
     queryKey: ["home-listings"],
     queryFn: async () => {
-      const res = await axios.get("/api/listings?limit=4&status=AVAILABLE");
+      const res = await axios.get<{ data: Listing[] }>("/api/listings?limit=4&status=AVAILABLE");
       return res.data.data;
     },
   });
@@ -20,7 +28,7 @@ export function PetGrid() {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-      {listings.map((pet: any) => (
+      {listings.map((pet) => (
         <div key={pet.id} className="border rounded-xl p-3 shadow-sm bg-white flex flex-col justify-between">
           <div>
             <img
@@ -31,7 +39,7 @@ export function PetGrid() {
             <h4 className="font-bold text-base text-gray-800 truncate">{pet.title}</h4>
             <p className="text-xs text-gray-500 mb-1">{pet.species}</p>
             <p className="text-sm font-semibold text-emerald-600">
-              {pet.price === "0" || pet.price === 0 ? "รับเลี้ยงฟรี" : `฿${Number(pet.price).toLocaleString()}`}
+              {Number(pet.price) === 0 ? "รับเลี้ยงฟรี" : `฿${Number(pet.price).toLocaleString()}`}
             </p>
           </div>
           <Link

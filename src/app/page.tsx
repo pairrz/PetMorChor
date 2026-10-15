@@ -41,6 +41,32 @@ export default async function Home() {
     }),
   ]);
 
+  const homeListings = listings.map((listing) => ({
+    id: listing.id,
+    title: listing.title,
+    species: listing.species,
+    price: listing.price.toString(),
+    type: listing.type,
+    media: listing.media.map(({ mediaUrl }) => ({ mediaUrl })),
+  }));
+  const homePosts = posts.map((post) => ({
+    id: post.id,
+    author: post.user.name,
+    body: post.description || post.caption,
+  }));
+  const homePlaces = places.map((place) => ({
+    id: place.id,
+    name: place.name,
+    address: place.address,
+    openingHours: place.openingHours,
+    type: place.placeType.name,
+  }));
+  const homeArticles = articles.map((article) => ({
+    id: article.id,
+    title: article.title,
+    tag: article.speciesTag,
+  }));
+
   return (
     <SiteShell>
       <Hero />
@@ -53,7 +79,7 @@ export default async function Home() {
           href="/marketplace"
         />
         {/* ส่งข้อมูลจริงจาก Database ไปแสดงผล */}
-        <PetGrid items={listings} />
+        <PetGrid items={homeListings} />
       </section>
 
       {/* แถบแจ้งเตือนชุมชน */}
@@ -79,7 +105,7 @@ export default async function Home() {
           subtitle="เรื่องราวและผู้คนในพื้นที่ใกล้เคียง"
           href="/community"
         />
-        <PostCards items={posts} />
+        <PostCards items={homePosts} />
       </section>
 
       {/* บริการ/คลินิกใกล้ฉัน */}
@@ -89,7 +115,7 @@ export default async function Home() {
           subtitle="สถานที่ดูแลสัตว์เลี้ยงใกล้มหาวิทยาลัย"
           href="/discover"
         />
-        <ServiceCards items={places} />
+        <ServiceCards items={homePlaces} />
       </section>
 
       {/* บทความเกร็ดความรู้ */}
@@ -99,7 +125,7 @@ export default async function Home() {
           subtitle="เคล็ดลับสำหรับคนเลี้ยงสัตว์ในพื้นที่"
           href="/information"
         />
-        <ArticleCards items={articles} />
+        <ArticleCards items={homeArticles} />
       </section>
     </SiteShell>
   );

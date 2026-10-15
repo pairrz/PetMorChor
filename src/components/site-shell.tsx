@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 
-import { nav, pets } from "@/lib/pet-data";
+import { nav, pets, type Pet } from "@/lib/pet-data";
 
 export function SiteShell({
   children,
@@ -152,7 +152,7 @@ export function PageFrame({
   );
 }
 
-export function PetCard({ pet }: { pet: any }) {
+export function PetCard({ pet }: { pet: Pet }) {
   return (
     <Link className="pet-card" href={`/marketplace/${pet.id}`}>
       <div className="pet-image">
@@ -220,142 +220,118 @@ export function SectionTitle({
   );
 }
 
-export function ServiceCards() {
-  const services = [
-    ["Paws & Claws Clinic", "Veterinary clinic", "0.7 km", "4.9"],
-    ["Campus Pet Supply", "Pet shop", "1.1 km", "4.7"],
-    ["Fluffy Wash", "Grooming", "1.8 km", "4.8"],
-  ];
-
+export function ServiceCards({
+  items,
+}: {
+  items: { id: number; name: string; address: string; openingHours: string; type: string }[];
+}) {
   return (
     <div className="service-grid">
-      {services.map((service) => (
-        <article className="service-card" key={service[0]}>
+      {items.map((service) => (
+        <article className="service-card" key={service.id}>
           <span className="service-icon">
             <MapPin />
           </span>
 
-          <h3>{service[0]}</h3>
+          <h3>{service.name}</h3>
 
           <p>
-            {service[1]} · {service[2]}
+            {service.type} · {service.address}
           </p>
 
-          <strong>★ {service[3]}</strong>
+          <strong>{service.openingHours}</strong>
         </article>
       ))}
+      {items.length === 0 && <p>ยังไม่มีข้อมูลสถานที่</p>}
     </div>
   );
 }
 
-export function PostCards() {
-  const posts = [
-    {
-      id: "orange-cat",
-      author: "Nina P.",
-      body: "มีใครเจอแมวสีส้มแถวหอ 3 ไหมครับ น้องใส่ปลอกคอสีน้ำเงิน",
-      time: "2h",
-      likes: 24,
-      comments: 8,
-    },
-    {
-      id: "bath-shop",
-      author: "Beam K.",
-      body: "มีร้านอาบน้ำสัตว์ใกล้มหาลัยแนะนำไหมครับ",
-      time: "5h",
-      likes: 16,
-      comments: 12,
-    },
-    {
-      id: "cafeteria-cat",
-      author: "Mew S.",
-      body: "แมวที่โรงอาหารวันนี้ นั่งเฝ้าร้านข้าวเหมือนเป็นเจ้าของเลย",
-      time: "1d",
-      likes: 41,
-      comments: 6,
-    },
-  ];
-
+export function PostCards({
+  items,
+}: {
+  items: { id: number; author: string; body: string }[];
+}) {
   return (
     <div className="post-grid">
-      {posts.map((post) => (
+      {items.map((post) => (
         <Link
           className="post-card"
-          href={`/community/${post.id}`}
+          href="/community"
           key={post.id}
         >
           <div className="post-user">
             <span className="post-avatar">
-              {post.author[0]}
+              {post.author.charAt(0)}
             </span>
 
             <b>{post.author}</b>
-            <span>· {post.time}</span>
           </div>
 
           <p>{post.body}</p>
-
-          <div className="post-actions">
-            <span>♡ {post.likes}</span>
-            <span>○ {post.comments} comments</span>
-            <span>↗ Share</span>
-          </div>
         </Link>
       ))}
+      {items.length === 0 && <p>ยังไม่มีโพสต์ในชุมชน</p>}
     </div>
   );
 }
 
-export function ArticleCards() {
-  const articles = [
-    {
-      id: "dorm-cat",
-      title: "How to care for a cat in a dorm",
-      tag: "CARE",
-      time: "6 min read",
-      image:
-        "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=900&q=85",
-    },
-    {
-      id: "adopt-dog",
-      title: "Things to prepare before adopting a dog",
-      tag: "ADOPTION",
-      time: "8 min read",
-      image:
-        "https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&w=900&q=85",
-    },
-    {
-      id: "stray",
-      title: "What to do when you find a stray around campus",
-      tag: "SAFETY",
-      time: "5 min read",
-      image:
-        "https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=900&q=85",
-    },
-  ];
-
+export function ArticleCards({
+  items,
+}: {
+  items: { id: number; title: string; tag: string }[];
+}) {
   return (
     <div className="article-grid">
-      {articles.map((article) => (
+      {items.map((article) => (
         <Link
           className="article-card"
-          href={`/information/${article.id}`}
+          href="/information"
           key={article.id}
         >
-          <img src={article.image} alt="" />
-
-          <Eyebrow>
-            {article.tag} · {article.time}
-          </Eyebrow>
+          <Eyebrow>{article.tag}</Eyebrow>
 
           <h3>{article.title}</h3>
         </Link>
       ))}
+      {items.length === 0 && <p>ยังไม่มีบทความ</p>}
     </div>
   );
 }
 
-export function PetGrid() {
+type HomeListing = {
+  id: number;
+  title: string;
+  species: string;
+  price: string;
+  type: string;
+  media: { mediaUrl: string }[];
+};
+
+export function PetGrid({ items }: { items?: HomeListing[] } = {}) {
+  if (items) {
+    return (
+      <div className="pet-grid">
+        {items.map((pet) => (
+          <Link className="pet-card" href={`/marketplace/${pet.id}`} key={pet.id}>
+            <div className="pet-image">
+              <img src={pet.media[0]?.mediaUrl ?? "/placeholder.jpg"} alt={pet.title} />
+              <span className={`pet-badge ${pet.type === "ADOPTION" ? "adoption" : "sale"}`}>
+                {pet.type === "ADOPTION" ? "หาบ้าน" : "ประกาศขาย"}
+              </span>
+            </div>
+            <div className="pet-info">
+              <h3>{pet.title}</h3>
+              <p>{pet.species}</p>
+              <strong>{Number(pet.price) === 0 ? "รับเลี้ยงฟรี" : `฿${Number(pet.price).toLocaleString()}`}</strong>
+            </div>
+          </Link>
+        ))}
+        {items.length === 0 && <p>ยังไม่มีประกาศสัตว์เลี้ยง</p>}
+      </div>
+    );
+  }
+
   return (
     <div className="pet-grid">
       {pets.map((pet) => (
@@ -766,7 +742,7 @@ export function InfoDetail({ id }: { id: string }) {
   );
 }
 
-export function AnimalDetail({ pet }: { pet: any }) {
+export function AnimalDetail({ pet }: { pet: Pet }) {
   return (
     <div className="animal-detail">
       <img

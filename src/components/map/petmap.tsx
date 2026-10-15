@@ -18,6 +18,41 @@ type Place = {
   lon: number;
 };
 
+type OverpassElement = {
+  id: number;
+  lat?: number;
+  lon?: number;
+  center?: { lat: number; lon: number };
+  tags?: {
+    amenity?: string;
+    shop?: string;
+    leisure?: string;
+    name?: string;
+  };
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isOverpassResponse(
+  value: unknown
+): value is { elements: OverpassElement[] } {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.elements) &&
+    value.elements.every((element) => {
+      if (!isRecord(element) || typeof element.id !== "number") return false;
+      const hasCoordinates =
+        (typeof element.lat === "number" && typeof element.lon === "number") ||
+        (isRecord(element.center) &&
+          typeof element.center.lat === "number" &&
+          typeof element.center.lon === "number");
+      return hasCoordinates && (element.tags === undefined || isRecord(element.tags));
+    })
+  );
+}
+
 const position: [number, number] = [18.7883, 98.9853];
 
 const placeIcon = L.icon({
@@ -59,9 +94,22 @@ export default function PetMap() {
       method: "POST",
       body: new URLSearchParams({ data: query }),
     })
-      .then((response) => response.json())
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Overpass request failed with status ${response.status}`);
+        }
+        const data: unknown = await response.json();
+        if (!isOverpassResponse(data)) {
+          throw new Error("Overpass returned an invalid response");
+        }
+        return data;
+      })
       .then((data) => {
-        const results: Place[] = data.elements.map((element: any) => {
+        const results = data.elements.flatMap((element): Place[] => {
+          const lat = element.lat ?? element.center?.lat;
+          const lon = element.lon ?? element.center?.lon;
+          if (lat === undefined || lon === undefined) return [];
+
           let type = "สถานที่สำหรับสัตว์เลี้ยง";
 
           if (element.tags?.amenity === "veterinary") {
@@ -74,13 +122,13 @@ export default function PetMap() {
             type = "สวนสำหรับสุนัข";
           }
 
-          return {
+          return [{
             id: element.id,
             name: element.tags?.name || "ไม่ระบุชื่อ",
             type,
-            lat: element.lat ?? element.center?.lat,
-            lon: element.lon ?? element.center?.lon,
-          };
+            lat,
+            lon,
+          }];
         });
 
         setPlaces(results);
