@@ -42,8 +42,18 @@ type PostsResponse = {
 
 async function getPosts(): Promise<PostsResponse> {
   const requestHeaders = await headers();
+  const forwardedHost = requestHeaders.get("x-forwarded-host");
+  const host = forwardedHost ?? requestHeaders.get("host");
+  const protocol =
+    requestHeaders.get("x-forwarded-proto") ??
+    (process.env.NODE_ENV === "production" ? "https" : "http");
+
+  if (!host) {
+    throw new Error("ไม่สามารถระบุที่อยู่ของเซิร์ฟเวอร์ได้");
+  }
+
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/api/posts`,
+    `${protocol}://${host}/api/posts`,
     {
       cache: "no-store",
       headers: {
