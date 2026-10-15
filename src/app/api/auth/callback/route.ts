@@ -94,7 +94,13 @@ export async function GET(req: NextRequest) {
     });
 
     // 6. แนบ HttpOnly Cookie แล้ว Redirect กลับหน้าแรก
-    const response = NextResponse.redirect(new URL("/", req.url));
+    const publicUrl = process.env.AUTH_URL || process.env.NEXTAUTH_URL;
+    if (!publicUrl) {
+      console.error("CPE callback error: AUTH_URL or NEXTAUTH_URL is missing");
+      return NextResponse.redirect(new URL("/login?error=ServerConfigError", req.url));
+    }
+
+    const response = NextResponse.redirect(new URL("/", publicUrl));
     response.cookies.set("session_token", sessionToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
